@@ -1,4 +1,5 @@
 require "longjing/version"
+require 'longjing/search'
 
 module Longjing
   module_function
