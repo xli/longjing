@@ -13,6 +13,7 @@ def cake_problem
         precond: [[:-, :have, :cake]],
         effect: [[:have, :cake]]
       }
-    ]
+    ],
+    solution: [[:eat], [:bake]]
   }
 end

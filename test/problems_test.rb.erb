@@ -1,0 +1,14 @@
+require "test_helper"
+
+class ProblemsTest < Test::Unit::TestCase
+<% problem_names.each do |name| %>
+  def test_<%= name %>_problem
+    assert_planning_solution <%= name %>_problem
+  end
+<% end %>
+  def assert_planning_solution(problem)
+    result = Longjing.plan(problem)
+    assert result[:resolved]
+    assert_equal problem[:solution], result[:sequence]
+  end
+end

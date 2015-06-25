@@ -41,6 +41,9 @@ def blocks_world_problem
           [:-, :on, :b, :x]
         ]
       }
-    ]
+    ],
+    solution: [[:moveToTable, :C, :A],
+               [:move, :B, :table, :C],
+               [:move, :A, :table, :B]]
   }
 end
