@@ -10,5 +10,10 @@ module Longjing
   end
 
   def plan(problem)
+    result = Search.new(:breadth_first).resolve(self.problem(problem))
+    {
+      :resolved => !result[:solution].nil?,
+      :sequence => result[:solution]
+    }
   end
 end
