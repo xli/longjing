@@ -10,6 +10,7 @@ class ProblemTest < Test::Unit::TestCase
     prob = Longjing.problem(cake_problem)
     assert prob.goal?([[:have, :cake], [:eaten, :cake]])
     assert prob.goal?([[:eaten, :cake], [:have, :cake]])
+    assert prob.goal?([[:have, :cake], [:eaten, :cake], [:something, :else]])
     assert !prob.goal?([[:eaten, :cake]])
     assert !prob.goal?([[:have, :cake]])
   end
@@ -38,5 +39,45 @@ class ProblemTest < Test::Unit::TestCase
     state = [[:have, :cake]]
     actions = prob.actions(state)
     assert_equal [:eat], prob.describe(actions[0], state)
+  end
+
+  def test_actions_with_arguments
+    prob = Longjing.problem(blocks_world_problem)
+    actions = prob.actions(prob.initial)
+
+    assert_equal 4, actions.size
+    assert_equal :move, actions[0][:name]
+    assert_equal [:B, :table, :C], actions[0][:arg_values]
+
+    assert_equal :move, actions[1][:name]
+    assert_equal [:C, :A, :B], actions[1][:arg_values]
+
+    assert_equal :moveToTable, actions[2][:name]
+    assert_equal [:B, :table], actions[2][:arg_values]
+
+    assert_equal :moveToTable, actions[3][:name]
+    assert_equal [:C, :A], actions[3][:arg_values]
+  end
+
+  def test_result_with_arguments
+    prob = Longjing.problem(blocks_world_problem)
+    actions = prob.actions(prob.initial)
+    result = prob.result(actions[0], prob.initial)
+    expected = [[:on, :A, :table],
+                [:on, :B, :C],
+                [:on, :C, :A],
+                [:block, :A],
+                [:block, :B],
+                [:block, :C],
+                [:clear, :table],
+                [:clear, :B]].sort
+    assert_equal expected, result.sort
+  end
+
+  def test_describe_with_arguments
+    prob = Longjing.problem(blocks_world_problem)
+    actions = prob.actions(prob.initial)
+    desc = prob.describe(actions[0], prob.initial)
+    assert_equal [:move, :B, :table, :C], desc
   end
 end

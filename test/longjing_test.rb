@@ -6,7 +6,9 @@ class LongjingTest < Test::Unit::TestCase
     result = Longjing.plan(problem)
 
     assert result[:resolved]
-    assert_equal [[:moveToTable, :C, :A], [:move, :B, :table, :C], [:move, :table, :B]], result[:sequence]
+    assert_equal [[:moveToTable, :C, :A],
+                  [:move, :B, :table, :C],
+                  [:move, :A, :table, :B]], result[:sequence]
   end
 
   def test_cake_example_planning
