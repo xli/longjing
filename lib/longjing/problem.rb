@@ -36,7 +36,7 @@ module Longjing
         when :-
           memo - [effect[1..-1]]
         else
-          memo + [effect]
+          memo.include?(effect) ? memo : memo + [effect]
         end
       end
     end
