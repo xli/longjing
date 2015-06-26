@@ -7,15 +7,13 @@ module Longjing
     attr_reader :initial
 
     def initialize(data)
-      @initial = data[:init]
-      @goal = data[:goal].sort
+      @initial = data[:init].to_set
+      @goal = data[:goal].to_set
       @actions = data[:actions]
     end
 
     def goal?(state)
-      @goal.all? do |sub|
-        state.include?(sub)
-      end
+      @goal.subset?(state)
     end
 
     def actions(state)
@@ -31,12 +29,12 @@ module Longjing
     end
 
     def result(action, state)
-      substitute_arguments(:effect, action, action[:arg_values]).inject(state) do |memo, effect|
+      substitute_arguments(:effect, action, action[:arg_values]).inject(state.dup) do |memo, effect|
         case effect[0]
         when :-
-          memo - [effect[1..-1]]
+          memo.delete(effect[1..-1])
         else
-          memo.include?(effect) ? memo : memo + [effect]
+          memo << effect
         end
       end
     end

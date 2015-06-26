@@ -3,16 +3,16 @@ require "test_helper"
 class ProblemTest < Test::Unit::TestCase
   def test_initial
     prob = Longjing.problem(cake_problem)
-    assert_equal [[:have, :cake]], prob.initial
+    assert_equal [[:have, :cake]].to_set, prob.initial
   end
 
   def test_goal_test
     prob = Longjing.problem(cake_problem)
-    assert prob.goal?([[:have, :cake], [:eaten, :cake]])
-    assert prob.goal?([[:eaten, :cake], [:have, :cake]])
-    assert prob.goal?([[:have, :cake], [:eaten, :cake], [:something, :else]])
-    assert !prob.goal?([[:eaten, :cake]])
-    assert !prob.goal?([[:have, :cake]])
+    assert prob.goal?([[:have, :cake], [:eaten, :cake]].to_set)
+    assert prob.goal?([[:eaten, :cake], [:have, :cake]].to_set)
+    assert prob.goal?([[:have, :cake], [:eaten, :cake], [:something, :else]].to_set)
+    assert !prob.goal?([[:eaten, :cake]].to_set)
+    assert !prob.goal?([[:have, :cake]].to_set)
   end
 
   def test_actions
@@ -28,10 +28,10 @@ class ProblemTest < Test::Unit::TestCase
 
   def test_result
     prob = Longjing.problem(cake_problem)
-    state = [[:have, :cake]]
+    state = [[:have, :cake]].to_set
     actions = prob.actions(state)
     ret = prob.result(actions[0], state)
-    assert_equal [[:eaten, :cake]], ret
+    assert_equal [[:eaten, :cake]].to_set, ret
   end
 
   def test_describe
