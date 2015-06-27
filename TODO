@@ -1,0 +1,6 @@
+* add performance benchmark
+* support customizing heuristic function
+* auto generate heuristic function
+* better PDDL language syntax
+* ? type support
+* ? type inherence support
