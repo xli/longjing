@@ -8,7 +8,7 @@ class ProblemsTest < Test::Unit::TestCase
 <% end %>
   def assert_planning_solution(problem)
     result = Longjing.plan(problem)
-    assert result[:resolved]
-    assert_equal problem[:solution], result[:sequence]
+    assert !result[:solution].nil?
+    assert_equal problem[:solution], result[:solution]
   end
 end

@@ -14,9 +14,13 @@ class ProblemsTest < Test::Unit::TestCase
     assert_planning_solution cargo_transportation_problem
   end
 
+  def test_test_problem
+    assert_planning_solution test_problem
+  end
+
   def assert_planning_solution(problem)
     result = Longjing.plan(problem)
-    assert result[:resolved]
-    assert_equal problem[:solution], result[:sequence]
+    assert !result[:solution].nil?
+    assert_equal problem[:solution], result[:solution]
   end
 end

@@ -21,14 +21,18 @@ module Longjing
     def resolve(problem)
       sequences = {}
       frontier, explored = [problem.initial], Set.new
-      solution = nil
       until frontier.empty? do
         state = @strategy[frontier, sequences]
         explored << state
 
         if problem.goal?(state)
-          solution = Array(sequences[state])
-          break
+          return {
+            :frontier => frontier,
+            :explored => explored.to_a,
+            :sequences => sequences,
+            :solution => Array(sequences[state]),
+            :state => state
+          }
         end
 
         problem.actions(state).each do |action|
@@ -43,7 +47,7 @@ module Longjing
       {
         :frontier => frontier,
         :explored => explored.to_a,
-        :solution => solution
+        :sequences => sequences
       }
     end
   end
