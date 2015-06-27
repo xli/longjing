@@ -13,7 +13,9 @@ module Longjing
     end
 
     def goal?(state)
-      @goal.subset?(state)
+      @goal.all? do |s|
+        s[0] == :- ? !state.include?(s[1..-1]) : state.include?(s)
+      end
     end
 
     def actions(state)

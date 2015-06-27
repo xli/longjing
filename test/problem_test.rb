@@ -13,6 +13,10 @@ class ProblemTest < Test::Unit::TestCase
     assert prob.goal?([[:have, :cake], [:eaten, :cake], [:something, :else]].to_set)
     assert !prob.goal?([[:eaten, :cake]].to_set)
     assert !prob.goal?([[:have, :cake]].to_set)
+
+    prob = Longjing.problem(cake_problem.
+                             merge(goal: [[:-, :have, :cake]]))
+    assert prob.goal?([].to_set)
   end
 
   def test_actions
