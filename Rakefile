@@ -1,5 +1,6 @@
 require "bundler/gem_tasks"
 require 'rake/testtask'
+require 'longjing'
 
 def problems
   Dir['test/problems/*.rb'].map do |f|
@@ -15,7 +16,7 @@ Rake::TestTask.new do |t|
   t.verbose = true
 end
 
-task :default => [:gen_problems_test, :test, :profile]
+task :default => [:gen_problems_test, :test, :benchmark]
 
 task :gen_problems_test do
   File.open('test/problems_test.rb', 'w') do |f|
@@ -27,7 +28,6 @@ end
 
 task :profile do
   require 'ruby-prof'
-  require 'longjing'
   puts "Profile started"
   [:breadth_first].each_with_index do |strategy, index|
     result = RubyProf.profile do
@@ -41,4 +41,23 @@ task :profile do
       printer.print(f, {})
     end
   end
+end
+
+task :benchmark do
+  require 'benchmark'
+  puts "Benchmark started, output: benchmark.log"
+  stdout = STDOUT
+  $stdout = File.new('benchmark.log', 'w')
+  $stdout.sync = true
+  label_len = problems.map{|p|p[:name].length}.max + 1
+  Benchmark.benchmark(Benchmark::CAPTION, label_len, Benchmark::FORMAT, ">total:", ">avg:") do |x|
+    bms = problems.map do |prob|
+      x.report(prob[:name].ljust(20)) do
+        Longjing.plan(send(prob[:method]))
+      end
+    end
+    [bms.reduce(:+), bms.reduce(:+)/bms.size]
+  end
+  $stdout = stdout
+  puts File.read('benchmark.log')
 end
