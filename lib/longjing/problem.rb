@@ -21,7 +21,7 @@ module Longjing
     def actions(state)
       @actions.map do |action|
         arg_names = Array(action[:arguments])
-        objects(state).repeated_permutation(arg_names.size).select do |arg_values|
+        objects(state).permutation(arg_names.size).select do |arg_values|
           precond = substitute_arguments(:precond, action, arg_values)
           eval_precond(state, precond)
         end.map do |arg_values|
