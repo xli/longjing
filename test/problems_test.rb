@@ -6,6 +6,10 @@ class ProblemsTest < Test::Unit::TestCase
     assert_planning_solution blocks_world_problem
   end
 
+  def test_blocks_world_4ops_problem
+    assert_planning_solution blocks_world_4ops_problem
+  end
+
   def test_cake_problem
     assert_planning_solution cake_problem
   end

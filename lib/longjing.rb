@@ -9,7 +9,7 @@ module Longjing
     Problem.new(data)
   end
 
-  def plan(problem)
-    Search.new(:breadth_first).resolve(self.problem(problem))
+  def plan(problem, strategy=:breadth_first)
+    Search.new(strategy).resolve(self.problem(problem))
   end
 end

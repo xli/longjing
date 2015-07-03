@@ -1,20 +1,44 @@
 require "bundler/gem_tasks"
 require 'rake/testtask'
 
+def problems
+  Dir['test/problems/*.rb'].map do |f|
+    require_relative f
+    name = File.basename(f).split('.').first
+    {name: name, method: name + "_problem"}
+  end
+end
+
 Rake::TestTask.new do |t|
   t.libs << "test"
   t.test_files = FileList['test/*test.rb']
   t.verbose = true
 end
 
-task :default => [:gen_problems_test, :test]
+task :default => [:gen_problems_test, :test, :profile]
 
 task :gen_problems_test do
   File.open('test/problems_test.rb', 'w') do |f|
     erb = ERB.new(File.read('test/problems_test.rb.erb'))
-    problem_names = Dir['test/problems/*.rb'].map do |f|
-      File.basename(f).split('.').first
-    end
+    problem_names = problems.map{|p| p[:name]}
     f.write(erb.result(binding))
+  end
+end
+
+task :profile do
+  require 'ruby-prof'
+  require 'longjing'
+  puts "Profile started"
+  [:breadth_first].each_with_index do |strategy, index|
+    result = RubyProf.profile do
+      problems.each do |prob|
+        Longjing.plan(send(prob[:method]), strategy)
+      end
+    end
+    puts "output: profile_#{strategy}.html"
+    printer = RubyProf::GraphHtmlPrinter.new(result)
+    File.open("profile_#{strategy}.html", 'w') do |f|
+      printer.print(f, {})
+    end
   end
 end
