@@ -1,6 +1,5 @@
-* add performance benchmark
+* separate domain and problem descriptions
+* support pddl 3.1 strip pddl input and output
+* support typing
 * support customizing heuristic function
 * auto generate heuristic function
-* better PDDL language syntax
-* ? type support
-* ? type inherence support
