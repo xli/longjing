@@ -18,9 +18,9 @@ def cargo_transportation_problem
     ],
     solution: [
       [:load, :c1, :p1, :sfo],
+      [:load, :c2, :p2, :jfk],
       [:fly, :p1, :sfo, :jfk],
       [:unload, :c1, :p1, :jfk],
-      [:load, :c2, :p2, :jfk],
       [:fly, :p2, :jfk, :sfo],
       [:unload, :c2, :p2, :sfo]
     ],

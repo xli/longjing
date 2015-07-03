@@ -6,7 +6,6 @@ class LongjingTest < Test::Unit::TestCase
     result = Longjing.plan(problem)
     assert result[:solution]
     assert result[:state]
-    assert result[:sequences]
     assert result[:frontier]
     assert result[:explored]
 
@@ -20,7 +19,6 @@ class LongjingTest < Test::Unit::TestCase
     assert_nil result[:solution]
     assert_nil result[:state]
 
-    assert result[:sequences]
     assert result[:frontier]
     assert result[:explored]
   end

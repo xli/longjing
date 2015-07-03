@@ -2,6 +2,17 @@ require "test_helper"
 
 class SearchTest < Test::Unit::TestCase
 
+  def test_state
+    a1 = Longjing::Search::State.new([:a], [1])
+    a2 = Longjing::Search::State.new([:a], [2])
+    b2 = Longjing::Search::State.new([:b], [2])
+    assert_equal a1, a2
+    assert_not_equal a2, b2
+    set = Set.new([a1, a2, b2])
+    assert_equal 2, set.size
+    assert_equal [[:a], [:b]], set.map(&:raw)
+  end
+
   def test_breadth_first_search
     search = Longjing::Search.new(:breadth_first)
     @goal = :a
