@@ -38,7 +38,7 @@ class ProblemTest < Test::Unit::TestCase
     assert_equal state([[:eaten, :cake]]), ret
   end
 
-  def test_actions_with_arguments
+  def test_actions_with_parameters
     prob = Longjing.problem(blocks_world_problem)
     actions = prob.actions(prob.initial)
 
@@ -56,7 +56,7 @@ class ProblemTest < Test::Unit::TestCase
     assert_equal [:C, :A], actions[3][:arg_values]
   end
 
-  def test_result_with_arguments
+  def test_result_with_parameters
     prob = Longjing.problem(blocks_world_problem)
     actions = prob.actions(prob.initial)
     result = prob.result(actions[0], prob.initial)

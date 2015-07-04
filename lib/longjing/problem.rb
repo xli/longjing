@@ -21,9 +21,9 @@ module Longjing
 
     def actions(state)
       @actions.map do |action|
-        arg_names = Array(action[:arguments])
+        arg_names = Array(action[:parameters])
         objects(state).permutation(arg_names.size).select do |arg_values|
-          precond = substitute_arguments(:precond, action, arg_values)
+          precond = substitute_parameters(:precond, action, arg_values)
           precond.all? do |cond|
             case cond[0]
             when :-
@@ -41,7 +41,7 @@ module Longjing
     end
 
     def result(action, state)
-      raw = substitute_arguments(:effect, action, action[:arg_values]).inject(state.raw.clone) do |memo, effect|
+      raw = substitute_parameters(:effect, action, action[:arg_values]).inject(state.raw.clone) do |memo, effect|
         case effect[0]
         when :-
           memo.delete(effect[1..-1])
@@ -57,9 +57,9 @@ module Longjing
     end
 
     private
-    def substitute_arguments(attr, action, arg_values)
-      return action[attr] if action[:arguments].nil?
-      args = Hash[action[:arguments].zip(arg_values)]
+    def substitute_parameters(attr, action, arg_values)
+      return action[attr] if action[:parameters].nil?
+      args = Hash[action[:parameters].zip(arg_values)]
       action[attr].map do |exp|
         exp.map { |e| args[e] || e }
       end

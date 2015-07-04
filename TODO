@@ -1,5 +1,6 @@
 * planning graph
 ** support typing
+*** Inheritance
 ** propositionalize action schema
 ** planning graph for heuristic estimation
 *** ? A* search

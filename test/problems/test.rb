@@ -18,7 +18,7 @@ def test_problem
     actions: [
       {
         name: :register,
-        arguments: [:x, :y],
+        parameters: [:x, :y],
         precond: [
           [:role, :x],
           [:email, :y]
@@ -31,19 +31,19 @@ def test_problem
       },
       {
         name: :login,
-        arguments: [:x],
+        parameters: [:x],
         precond: [[:user, :x], [:-, :login, :x]],
         effect: [[:login, :x]]
       },
       {
         name: :logout,
-        arguments: [:x],
+        parameters: [:x],
         precond: [[:user, :x], [:login, :x]],
         effect: [[:-, :login, :x]]
       },
       {
         name: :post,
-        arguments: [:u, :z1, :z2, :z3],
+        parameters: [:u, :z1, :z2, :z3],
         precond: [
           [:user, :u],
           [:login, :u],

@@ -34,7 +34,7 @@ def blocks_world_4ops_problem
     actions: [
       {
         name: :pickup,
-        arguments: [:ob],
+        parameters: [:ob],
         precond: [[:clear, :ob],
                   [:on_table, :ob],
                   [:arm_empty]],
@@ -45,7 +45,7 @@ def blocks_world_4ops_problem
       },
       {
         name: :putdown,
-        arguments: [:ob],
+        parameters: [:ob],
         precond: [[:holding, :ob]],
         effect: [[:clear, :ob],
                  [:arm_empty],
@@ -54,14 +54,14 @@ def blocks_world_4ops_problem
       },
       {
         name: :stack,
-        arguments: [:ob, :underob],
+        parameters: [:ob, :underob],
         precond: [[:clear, :underob], [:holding, :ob]],
         effect: [[:arm_empty], [:clear, :ob], [:on, :ob, :underob],
                  [:-, :clear, :underob], [:-, :holding, :ob]]
       },
       {
         name: :unstack,
-        arguments: [:ob, :underob],
+        parameters: [:ob, :underob],
         precond: [[:on, :ob, :underob], [:clear, :ob], [:arm_empty]],
         effect: [[:holding, :ob],
                  [:clear, :underob],

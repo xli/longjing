@@ -12,7 +12,7 @@ def blocks_world_problem
     actions: [
       {
         name: :move,
-        arguments: [:b, :x, :y],
+        parameters: [:b, :x, :y],
         precond: [[:on, :b, :x],
                   [:clear, :b],
                   [:clear, :y],
@@ -30,7 +30,7 @@ def blocks_world_problem
       },
       {
         name: :moveToTable,
-        arguments: [:b, :x],
+        parameters: [:b, :x],
         precond: [[:on, :b, :x],
                   [:block, :b],
                   [:clear, :b],

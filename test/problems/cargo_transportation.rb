@@ -27,7 +27,7 @@ def cargo_transportation_problem
     actions: [
       {
         name: :load,
-        arguments: [:c, :p, :a],
+        parameters: [:c, :p, :a],
         precond: [
           [:at, :c, :a],
           [:at, :p, :a],
@@ -42,7 +42,7 @@ def cargo_transportation_problem
       },
       {
         name: :unload,
-        arguments: [:c, :p, :a],
+        parameters: [:c, :p, :a],
         precond: [
           [:in, :c, :p],
           [:at, :p, :a],
@@ -57,7 +57,7 @@ def cargo_transportation_problem
       },
       {
         name: :fly,
-        arguments: [:p, :from, :to],
+        parameters: [:p, :from, :to],
         precond: [
           [:at, :p, :from],
           [:plane, :p],
