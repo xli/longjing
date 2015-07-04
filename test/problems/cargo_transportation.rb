@@ -1,16 +1,58 @@
 def cargo_transportation_problem
   {
+    # domain
+    types: [:cargo, :plane, :airport],
+    actions: [
+      {
+        name: :load,
+        parameters: [[:c, :cargo], [:p, :plane], [:a, :airport]],
+        precond: [
+          [:at, :c, :a],
+          [:at, :p, :a]
+        ],
+        effect: [
+          [:-, :at, :c, :a],
+          [:in, :c, :p]
+        ]
+      },
+      {
+        name: :unload,
+        parameters: [[:c, :cargo], [:p, :plane], [:a, :airport]],
+        precond: [
+          [:in, :c, :p],
+          [:at, :p, :a]
+        ],
+        effect: [
+          [:at, :c, :a],
+          [:-, :in, :c, :p]
+        ]
+      },
+      {
+        name: :fly,
+        parameters: [[:p, :plane], [:from, :airport], [:to, :airport]],
+        precond: [
+          [:at, :p, :from]
+        ],
+        effect: [
+          [:-, :at, :p, :from],
+          [:at, :p, :to]
+        ]
+      }
+    ],
+    # problem
+    objects: {
+      c1: :cargo,
+      c2: :cargo,
+      p1: :plane,
+      p2: :plane,
+      sfo: :airport,
+      jfk: :airport
+    },
     init: [
       [:at, :c1, :sfo],
       [:at, :c2, :jfk],
       [:at, :p1, :sfo],
       [:at, :p2, :jfk],
-      [:cargo, :c1],
-      [:cargo, :c2],
-      [:plane, :p1],
-      [:plane, :p2],
-      [:airport, :sfo],
-      [:airport, :jfk]
     ],
     goal: [
       [:at, :c1, :jfk],
@@ -23,52 +65,6 @@ def cargo_transportation_problem
       [:unload, :c1, :p1, :jfk],
       [:fly, :p2, :jfk, :sfo],
       [:unload, :c2, :p2, :sfo]
-    ],
-    actions: [
-      {
-        name: :load,
-        parameters: [:c, :p, :a],
-        precond: [
-          [:at, :c, :a],
-          [:at, :p, :a],
-          [:cargo, :c],
-          [:plane, :p],
-          [:airport, :a]
-        ],
-        effect: [
-          [:-, :at, :c, :a],
-          [:in, :c, :p]
-        ]
-      },
-      {
-        name: :unload,
-        parameters: [:c, :p, :a],
-        precond: [
-          [:in, :c, :p],
-          [:at, :p, :a],
-          [:cargo, :c],
-          [:plane, :p],
-          [:airport, :a]
-        ],
-        effect: [
-          [:at, :c, :a],
-          [:-, :in, :c, :p]
-        ]
-      },
-      {
-        name: :fly,
-        parameters: [:p, :from, :to],
-        precond: [
-          [:at, :p, :from],
-          [:plane, :p],
-          [:airport, :from],
-          [:airport, :to]
-        ],
-        effect: [
-          [:-, :at, :p, :from],
-          [:at, :p, :to]
-        ]
-      }
     ]
   }
 end

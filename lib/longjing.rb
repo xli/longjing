@@ -1,5 +1,6 @@
 require "longjing/version"
 require 'longjing/state'
+require 'longjing/parameters'
 require 'longjing/search'
 require 'longjing/problem'
 
@@ -8,6 +9,10 @@ module Longjing
 
   def state(raw, path=[])
     State.new(raw, path)
+  end
+
+  def parameters(params)
+    Parameters.new(params)
   end
 
   def problem(data)

@@ -24,10 +24,12 @@ class ProblemTest < Test::Unit::TestCase
     actions = prob.actions(state([[:have, :cake]]))
     assert_equal 1, actions.size
     assert_equal :eat, actions[0][:name]
+    assert_equal [:eat], actions[0][:describe]
 
     actions = prob.actions(state([[:eaten, :cake]]))
     assert_equal 1, actions.size
     assert_equal :bake, actions[0][:name]
+    assert_equal [:bake], actions[0][:describe]
   end
 
   def test_result
@@ -44,16 +46,30 @@ class ProblemTest < Test::Unit::TestCase
 
     assert_equal 4, actions.size
     assert_equal :move, actions[0][:name]
-    assert_equal [:B, :table, :C], actions[0][:arg_values]
+    assert_equal [[:on, :B, :C],
+                  [:clear, :table],
+                  [:-, :on, :B, :table],
+                  [:-, :clear, :C]], actions[0][:effect]
+    assert_equal [:move, :B, :table, :C], actions[0][:describe]
 
     assert_equal :move, actions[1][:name]
-    assert_equal [:C, :A, :B], actions[1][:arg_values]
+    assert_equal [[:on, :C, :B],
+                  [:clear, :A],
+                  [:-, :on, :C, :A],
+                  [:-, :clear, :B]], actions[1][:effect]
+    assert_equal [:move, :C, :A, :B], actions[1][:describe]
 
     assert_equal :moveToTable, actions[2][:name]
-    assert_equal [:B, :table], actions[2][:arg_values]
+    assert_equal [[:on, :B, :table],
+                  [:clear, :table],
+                  [:-, :on, :B, :table]], actions[2][:effect]
+    assert_equal [:moveToTable, :B, :table], actions[2][:describe]
 
     assert_equal :moveToTable, actions[3][:name]
-    assert_equal [:C, :A], actions[3][:arg_values]
+    assert_equal [[:on, :C, :table],
+                  [:clear, :A],
+                  [:-, :on, :C, :A]], actions[3][:effect]
+    assert_equal [:moveToTable, :C, :A], actions[3][:describe]
   end
 
   def test_result_with_parameters
@@ -68,6 +84,18 @@ class ProblemTest < Test::Unit::TestCase
                 [:block, :C],
                 [:clear, :table],
                 [:clear, :B]]
+    assert_equal state(expected), result
+  end
+
+  def test_support_typing
+    prob = Longjing.problem(cargo_transportation_problem)
+    actions = prob.actions(prob.initial)
+    assert_equal 6, actions.size
+    result = prob.result(actions[0], prob.initial)
+    expected = [[:at, :c2, :jfk],
+                [:at, :p1, :sfo],
+                [:at, :p2, :jfk],
+                [:in, :c1, :p1]]
     assert_equal state(expected), result
   end
 

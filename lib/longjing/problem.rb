@@ -1,5 +1,6 @@
 require 'set'
 require 'longjing/state'
+require 'longjing/parameters'
 
 module Longjing
   class Problem
@@ -8,9 +9,17 @@ module Longjing
     attr_reader :initial
 
     def initialize(data)
+      @types = data[:types]
+      @typing = @types != nil
+      @actions = data[:actions].map do |action|
+        parameters = Array(action[:parameters]).map{|p| @typing ? p : [p, nil]}
+        action[:parameters] = Parameters.new(parameters)
+        action
+      end
+
       @initial = State.new(data[:init].to_set)
       @goal = data[:goal].to_set
-      @actions = data[:actions]
+      @objects = data[:objects] ? data[:objects].to_a : nil
     end
 
     def goal?(state)
@@ -20,28 +29,24 @@ module Longjing
     end
 
     def actions(state)
-      @actions.map do |action|
-        arg_names = Array(action[:parameters])
-        objects(state).permutation(arg_names.size).select do |arg_values|
-          precond = substitute_parameters(:precond, action, arg_values)
-          precond.all? do |cond|
-            case cond[0]
-            when :-
-              !state.include?(cond[1..-1])
-            when :!=
-              cond[1] != cond[2]
-            else
-              state.include?(cond)
-            end
+      ret = []
+      objs = @objects || objects(state)
+      @actions.each do |action|
+        action[:parameters].permutate(objs).each do |variables|
+          precond = substitute_parameters(action[:precond], variables)
+          if eval_precond(precond, state)
+            effect = substitute_parameters(action[:effect], variables)
+            arguments = action[:parameters].arguments(variables)
+            describe = [action[:name]].concat(arguments)
+            ret << action.merge(:effect => effect, :describe => describe)
           end
-        end.map do |arg_values|
-          action.merge(:arg_values => arg_values)
         end
-      end.flatten
+      end
+      ret
     end
 
     def result(action, state)
-      raw = substitute_parameters(:effect, action, action[:arg_values]).inject(state.raw.clone) do |memo, effect|
+      raw = action[:effect].inject(state.raw.clone) do |memo, effect|
         case effect[0]
         when :-
           memo.delete(effect[1..-1])
@@ -49,24 +54,31 @@ module Longjing
           memo << effect
         end
       end
-      State.new(raw, state.path + [self.describe(action)])
-    end
-
-    def describe(action)
-      [action[:name]].concat(action[:arg_values])
+      State.new(raw, state.path + [action[:describe]])
     end
 
     private
-    def substitute_parameters(attr, action, arg_values)
-      return action[attr] if action[:parameters].nil?
-      args = Hash[action[:parameters].zip(arg_values)]
-      action[attr].map do |exp|
+    def substitute_parameters(exps, args)
+      exps.map do |exp|
         exp.map { |e| args[e] || e }
       end
     end
 
+    def eval_precond(precond, state)
+      precond.all? do |cond|
+        case cond[0]
+        when :-
+          !state.include?(cond[1..-1])
+        when :!=
+          cond[1] != cond[2]
+        else
+          state.include?(cond)
+        end
+      end
+    end
+
     def objects(state)
-      state.raw.map(&method(:literal_objects)).flatten.uniq
+      state.raw.map(&method(:literal_objects)).flatten.uniq.map{|o| [o, nil]}
     end
 
     def literal_objects(lit)
