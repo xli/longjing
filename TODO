@@ -1,5 +1,9 @@
+* planning graph
+** support typing
+** propositionalize action schema
+** planning graph for heuristic estimation
+*** ? A* search
+*** Enforced hill climbing search
 * separate domain and problem descriptions
+* FF
 * support pddl 3.1 strip pddl input and output
-* support typing
-* support customizing heuristic function
-* auto generate heuristic function
