@@ -1,11 +1,10 @@
 require 'set'
 require 'longjing/state'
 require 'longjing/parameters'
+require 'longjing/literal'
 
 module Longjing
   class Problem
-    OPERATORS = Set.new([:-, :!=])
-
     attr_reader :initial, :objects
 
     def initialize(data)
@@ -15,8 +14,8 @@ module Longjing
       @actions = data[:actions].map do |action|
         parameters = Parameters.new(Array(action[:parameters]).map(&@typing))
         parameters.permutate(@objects).map do |variables|
-          precond = substitute_parameters(action[:precond], variables)
-          effect = substitute_parameters(action[:effect], variables)
+          precond = substitute_variables(action[:precond], variables)
+          effect = substitute_variables(action[:effect], variables)
           arguments = parameters.arguments(variables)
           describe = [action[:name]].concat(arguments)
           action.merge(:precond => precond,
@@ -26,12 +25,12 @@ module Longjing
       end.flatten
 
       @initial = State.new(data[:init].to_set)
-      @goal = data[:goal].to_set
+      @goal = data[:goal].map{|lit| Literal.new(lit)}.to_set
     end
 
     def goal?(state)
       @goal.all? do |lit|
-        literal_negative?(lit) ? !state.include?(lit[1..-1]) : state.include?(lit)
+        lit.negative? ? !state.include?(lit.positive) : state.include?(lit)
       end
     end
 
@@ -43,38 +42,32 @@ module Longjing
 
     def result(action, state)
       raw = action[:effect].inject(state.raw.dup) do |memo, effect|
-        case effect[0]
-        when :-
-          memo.delete(effect[1..-1])
+        if effect.negative?
+          memo.delete(effect.positive)
         else
-          memo << effect
+          memo << effect.raw
         end
       end
       State.new(raw, state.path + [action[:describe]])
     end
 
     private
-    def substitute_parameters(exps, args)
+    def substitute_variables(exps, args)
       exps.map do |exp|
-        exp.map { |e| args[e] || e }
+        Literal.new(exp.map { |e| args[e] || e })
       end
     end
 
     def eval_precond(precond, state)
       precond.all? do |cond|
-        case cond[0]
-        when :-
-          !state.include?(cond[1..-1])
-        when :!=
-          cond[1] != cond[2]
+        if cond.negative?
+          !state.include?(cond.positive)
+        elsif cond.inequal?
+          cond.match?
         else
           state.include?(cond)
         end
       end
-    end
-
-    def literal_negative?(lit)
-      lit[0] == :-
     end
   end
 end

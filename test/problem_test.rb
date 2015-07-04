@@ -49,26 +49,26 @@ class ProblemTest < Test::Unit::TestCase
     assert_equal [[:on, :B, :C],
                   [:clear, :table],
                   [:-, :on, :B, :table],
-                  [:-, :clear, :C]], actions[0][:effect]
+                  [:-, :clear, :C]], actions[0][:effect].map(&:raw)
     assert_equal [:move, :B, :table, :C], actions[0][:describe]
 
     assert_equal :move, actions[1][:name]
     assert_equal [[:on, :C, :B],
                   [:clear, :A],
                   [:-, :on, :C, :A],
-                  [:-, :clear, :B]], actions[1][:effect]
+                  [:-, :clear, :B]], actions[1][:effect].map(&:raw)
     assert_equal [:move, :C, :A, :B], actions[1][:describe]
 
     assert_equal :moveToTable, actions[2][:name]
     assert_equal [[:on, :B, :table],
                   [:clear, :table],
-                  [:-, :on, :B, :table]], actions[2][:effect]
+                  [:-, :on, :B, :table]], actions[2][:effect].map(&:raw)
     assert_equal [:moveToTable, :B, :table], actions[2][:describe]
 
     assert_equal :moveToTable, actions[3][:name]
     assert_equal [[:on, :C, :table],
                   [:clear, :A],
-                  [:-, :on, :C, :A]], actions[3][:effect]
+                  [:-, :on, :C, :A]], actions[3][:effect].map(&:raw)
     assert_equal [:moveToTable, :C, :A], actions[3][:describe]
   end
 
