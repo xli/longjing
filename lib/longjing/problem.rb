@@ -46,7 +46,7 @@ module Longjing
     end
 
     def result(action, state)
-      raw = action[:effect].inject(state.raw.clone) do |memo, effect|
+      raw = action[:effect].inject(state.raw.dup) do |memo, effect|
         case effect[0]
         when :-
           memo.delete(effect[1..-1])
