@@ -70,6 +70,7 @@ def blocks_world_4ops_problem
                  [:-, :arm_empty]]
       }
     ],
+    objects: [:b1, :b2, :b3, :b4, :b5, :b6],
     init: [
       [:arm_empty],
       [:on, :b1, :b3],

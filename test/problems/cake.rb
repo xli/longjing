@@ -1,5 +1,6 @@
 def cake_problem
   {
+    objects: [:cake],
     init: [[:have, :cake]],
     goal: [[:have, :cake], [:eaten, :cake]],
     actions: [

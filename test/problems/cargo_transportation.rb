@@ -40,14 +40,14 @@ def cargo_transportation_problem
       }
     ],
     # problem
-    objects: {
-      c1: :cargo,
-      c2: :cargo,
-      p1: :plane,
-      p2: :plane,
-      sfo: :airport,
-      jfk: :airport
-    },
+    objects: [
+      [:c1, :cargo],
+      [:c2, :cargo],
+      [:p1, :plane],
+      [:p2, :plane],
+      [:sfo, :airport],
+      [:jfk, :airport]
+    ],
     init: [
       [:at, :c1, :sfo],
       [:at, :c2, :jfk],

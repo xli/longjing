@@ -1,5 +1,6 @@
 def blocks_world_problem
   {
+    objects: [:A, :B, :C, :table],
     init: [[:on, :A, :table],
            [:on, :B, :table],
            [:on, :C, :A],

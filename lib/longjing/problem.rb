@@ -6,20 +6,20 @@ module Longjing
   class Problem
     OPERATORS = Set.new([:-, :!=])
 
-    attr_reader :initial
+    attr_reader :initial, :objects
 
     def initialize(data)
       @types = data[:types]
-      @typing = @types != nil
+      @typing = @types != nil ? lambda {|o| o} : lambda {|o| [o, nil]}
+      @objects = data[:objects].map(&@typing)
       @actions = data[:actions].map do |action|
-        parameters = Array(action[:parameters]).map{|p| @typing ? p : [p, nil]}
+        parameters = Array(action[:parameters]).map(&@typing)
         action[:parameters] = Parameters.new(parameters)
         action
       end
 
       @initial = State.new(data[:init].to_set)
       @goal = data[:goal].to_set
-      @objects = data[:objects] ? data[:objects].to_a : nil
     end
 
     def goal?(state)
@@ -30,9 +30,8 @@ module Longjing
 
     def actions(state)
       ret = []
-      objs = @objects || objects(state)
       @actions.each do |action|
-        action[:parameters].permutate(objs).each do |variables|
+        action[:parameters].permutate(@objects).each do |variables|
           precond = substitute_parameters(action[:precond], variables)
           if eval_precond(precond, state)
             effect = substitute_parameters(action[:effect], variables)
@@ -75,14 +74,6 @@ module Longjing
           state.include?(cond)
         end
       end
-    end
-
-    def objects(state)
-      state.raw.map(&method(:literal_objects)).flatten.uniq.map{|o| [o, nil]}
-    end
-
-    def literal_objects(lit)
-      OPERATORS.include?(lit[0]) ? lit[2..-1] : lit[1..-1]
     end
 
     def literal_negative?(lit)

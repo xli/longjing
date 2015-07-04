@@ -1,12 +1,9 @@
 def test_problem
   {
-    init: [
-      [:email, :'tom@tom.com'],
-      [:role, :bloger],
-      [:string, :hello],
-      [:string, :world],
-      [:blog_id, :b1]
-    ],
+    types: [:email, :role, :string, :blog_id],
+    objects: [[:'tom@tom.com', :email], [:bloger, :role],
+              [:hello, :string], [:world, :string], [:b1, :blog_id]],
+    init: [],
     goal: [[:blog, :b1],
            [:title, :b1, :hello],
            [:body, :b1, :world],
@@ -18,11 +15,8 @@ def test_problem
     actions: [
       {
         name: :register,
-        parameters: [:x, :y],
-        precond: [
-          [:role, :x],
-          [:email, :y]
-        ],
+        parameters: [[:x, :role], [:y, :email]],
+        precond: [],
         effect: [
           [:user, :y],
           [:user_role, :y, :x],
@@ -31,26 +25,24 @@ def test_problem
       },
       {
         name: :login,
-        parameters: [:x],
+        parameters: [[:x, :email]],
         precond: [[:user, :x], [:-, :login, :x]],
         effect: [[:login, :x]]
       },
       {
         name: :logout,
-        parameters: [:x],
+        parameters: [[:x, :email]],
         precond: [[:user, :x], [:login, :x]],
         effect: [[:-, :login, :x]]
       },
       {
         name: :post,
-        parameters: [:u, :z1, :z2, :z3],
+        parameters: [[:u, :email], [:z1, :blog_id],
+                     [:z2, :string], [:z3, :string]],
         precond: [
           [:user, :u],
           [:login, :u],
-          [:user_role, :u, :bloger],
-          [:blog_id, :z1],
-          [:string, :z2],
-          [:string, :z3]
+          [:user_role, :u, :bloger]
         ],
         effect: [
           [:blog, :z1],
