@@ -2,21 +2,6 @@ require 'set'
 
 module Longjing
   class Search
-
-    class State
-      attr_reader :raw, :path, :hash
-      def initialize(raw, path=[])
-        @raw = raw
-        @path = path
-        @hash = @raw.hash
-      end
-
-      def ==(state)
-        state && @raw == state.raw
-      end
-      alias :eql? :==
-    end
-
     class BreadthFirst
       def pop(frontier)
         min = frontier.min_by {|s| s.path.length}
@@ -42,19 +27,17 @@ module Longjing
 
     def resolve(problem)
       frontier, explored = Set.new, Set.new
-      @strategy.push(frontier, State.new(problem.initial))
+      @strategy.push(frontier, problem.initial)
       until frontier.empty? do
         state = @strategy.pop(frontier)
         explored << state
 
-        if problem.goal?(state.raw)
+        if problem.goal?(state)
           return result(frontier, explored, state)
         end
 
-        problem.actions(state.raw).each do |action|
-          new_raw = problem.result(action, state.raw)
-          new_event = problem.describe(action, state.raw)
-          new_state = State.new(new_raw, state.path + [new_event])
+        problem.actions(state).each do |action|
+          new_state = problem.result(action, state)
           unless explored.include?(new_state) || frontier.include?(new_state)
             @strategy.push(frontier, new_state)
           end

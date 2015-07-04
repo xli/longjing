@@ -2,17 +2,6 @@ require "test_helper"
 
 class SearchTest < Test::Unit::TestCase
 
-  def test_state
-    a1 = Longjing::Search::State.new([:a], [1])
-    a2 = Longjing::Search::State.new([:a], [2])
-    b2 = Longjing::Search::State.new([:b], [2])
-    assert_equal a1, a2
-    assert_not_equal a2, b2
-    set = Set.new([a1, a2, b2])
-    assert_equal 2, set.size
-    assert_equal [[:a], [:b]], set.map(&:raw)
-  end
-
   def test_breadth_first_search
     search = Longjing::Search.new(:breadth_first)
     @goal = :a
@@ -41,16 +30,21 @@ class SearchTest < Test::Unit::TestCase
       Longjing::Search.new(:something)
     end
   end
+
+  def state(raw, path=[])
+    Longjing.state(raw, path)
+  end
+
   # problem interface
 
   # ret: state
   def initial
-    :a
+    state(:a)
   end
 
   # ret: boolean
   def goal?(state)
-    @goal == state
+    state(@goal) == state
   end
 
   # ret: [action]
@@ -65,16 +59,16 @@ class SearchTest < Test::Unit::TestCase
       g: [:h],
       h: []
     }
-    map[state].map {|to| {name: :move, to: to}}
+    map[state.raw].map {|to| {name: :move, to: to}}
   end
 
   # ret: [action-description]
   def describe(action, state)
-    [action[:name], state, action[:to]]
+    [action[:name], state.raw, action[:to]]
   end
 
   # ret: state
   def result(action, state)
-    action[:to]
+    state(action[:to], state.path + [describe(action, state)])
   end
 end

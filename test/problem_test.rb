@@ -3,7 +3,7 @@ require "test_helper"
 class ProblemTest < Test::Unit::TestCase
   def test_initial
     prob = Longjing.problem(cake_problem)
-    assert_equal [[:have, :cake]].to_set, prob.initial
+    assert_equal state([[:have, :cake]]), prob.initial
   end
 
   def test_goal_test
@@ -21,28 +21,21 @@ class ProblemTest < Test::Unit::TestCase
 
   def test_actions
     prob = Longjing.problem(cake_problem)
-    actions = prob.actions([[:have, :cake]])
+    actions = prob.actions(state([[:have, :cake]]))
     assert_equal 1, actions.size
     assert_equal :eat, actions[0][:name]
 
-    actions = prob.actions([[:eaten, :cake]])
+    actions = prob.actions(state([[:eaten, :cake]]))
     assert_equal 1, actions.size
     assert_equal :bake, actions[0][:name]
   end
 
   def test_result
     prob = Longjing.problem(cake_problem)
-    state = [[:have, :cake]].to_set
+    state = state([[:have, :cake]])
     actions = prob.actions(state)
     ret = prob.result(actions[0], state)
-    assert_equal [[:eaten, :cake]].to_set, ret
-  end
-
-  def test_describe
-    prob = Longjing.problem(cake_problem)
-    state = [[:have, :cake]]
-    actions = prob.actions(state)
-    assert_equal [:eat], prob.describe(actions[0], state)
+    assert_equal state([[:eaten, :cake]]), ret
   end
 
   def test_actions_with_arguments
@@ -74,14 +67,11 @@ class ProblemTest < Test::Unit::TestCase
                 [:block, :B],
                 [:block, :C],
                 [:clear, :table],
-                [:clear, :B]].sort
-    assert_equal expected, result.sort
+                [:clear, :B]]
+    assert_equal state(expected), result
   end
 
-  def test_describe_with_arguments
-    prob = Longjing.problem(blocks_world_problem)
-    actions = prob.actions(prob.initial)
-    desc = prob.describe(actions[0], prob.initial)
-    assert_equal [:move, :B, :table, :C], desc
+  def state(raw)
+    Longjing.state(raw.to_set)
   end
 end
