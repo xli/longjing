@@ -14,8 +14,8 @@ module Longjing
     end
 
     def goal?(state)
-      @goal.all? do |s|
-        s[0] == :- ? !state.include?(s[1..-1]) : state.include?(s)
+      @goal.all? do |lit|
+        literal_negative?(lit) ? !state.include?(lit[1..-1]) : state.include?(lit)
       end
     end
 
@@ -66,9 +66,15 @@ module Longjing
     end
 
     def objects(state)
-      state.raw.map do |s|
-        OPERATORS.include?(s[0]) ? s[2..-1] : s[1..-1]
-      end.flatten.uniq
+      state.raw.map(&method(:literal_objects)).flatten.uniq
+    end
+
+    def literal_objects(lit)
+      OPERATORS.include?(lit[0]) ? lit[2..-1] : lit[1..-1]
+    end
+
+    def literal_negative?(lit)
+      lit[0] == :-
     end
   end
 end
