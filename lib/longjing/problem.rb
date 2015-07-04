@@ -36,7 +36,15 @@ module Longjing
 
     def actions(state)
       @actions.select do |action|
-        eval_precond(action[:precond], state)
+        action[:precond].all? do |cond|
+          if cond.negative?
+            !state.include?(cond.positive)
+          elsif cond.inequal?
+            cond.match?
+          else
+            state.include?(cond)
+          end
+        end
       end
     end
 
@@ -55,18 +63,6 @@ module Longjing
     def substitute_variables(exps, args)
       exps.map do |exp|
         Literal.new(exp.map { |e| args[e] || e })
-      end
-    end
-
-    def eval_precond(precond, state)
-      precond.all? do |cond|
-        if cond.negative?
-          !state.include?(cond.positive)
-        elsif cond.inequal?
-          cond.match?
-        else
-          state.include?(cond)
-        end
       end
     end
   end
