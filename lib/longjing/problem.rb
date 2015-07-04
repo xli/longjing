@@ -13,10 +13,17 @@ module Longjing
       @typing = @types != nil ? lambda {|o| o} : lambda {|o| [o, nil]}
       @objects = data[:objects].map(&@typing)
       @actions = data[:actions].map do |action|
-        parameters = Array(action[:parameters]).map(&@typing)
-        action[:parameters] = Parameters.new(parameters)
-        action
-      end
+        parameters = Parameters.new(Array(action[:parameters]).map(&@typing))
+        parameters.permutate(@objects).map do |variables|
+          precond = substitute_parameters(action[:precond], variables)
+          effect = substitute_parameters(action[:effect], variables)
+          arguments = parameters.arguments(variables)
+          describe = [action[:name]].concat(arguments)
+          action.merge(:precond => precond,
+                       :effect => effect,
+                       :describe => describe)
+        end
+      end.flatten
 
       @initial = State.new(data[:init].to_set)
       @goal = data[:goal].to_set
@@ -29,19 +36,9 @@ module Longjing
     end
 
     def actions(state)
-      ret = []
-      @actions.each do |action|
-        action[:parameters].permutate(@objects).each do |variables|
-          precond = substitute_parameters(action[:precond], variables)
-          if eval_precond(precond, state)
-            effect = substitute_parameters(action[:effect], variables)
-            arguments = action[:parameters].arguments(variables)
-            describe = [action[:name]].concat(arguments)
-            ret << action.merge(:effect => effect, :describe => describe)
-          end
-        end
+      @actions.select do |action|
+        eval_precond(action[:precond], state)
       end
-      ret
     end
 
     def result(action, state)
