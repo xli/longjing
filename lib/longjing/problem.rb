@@ -24,8 +24,8 @@ module Longjing
         end
       end.flatten
 
-      @initial = State.new(data[:init].to_set)
-      @goal = data[:goal].map{|lit| Literal.new(lit)}.to_set
+      @initial = State.new(Literal.set(data[:init]))
+      @goal = Literal.set(data[:goal])
     end
 
     def goal?(state)
@@ -53,7 +53,7 @@ module Longjing
         if effect.negative?
           memo.delete(effect.positive)
         else
-          memo << effect.raw
+          memo << effect
         end
       end
       State.new(raw, state.path + [action[:describe]])

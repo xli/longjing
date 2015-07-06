@@ -1,5 +1,9 @@
 module Longjing
   class Literal
+    def self.set(raw)
+      raw.map{|lit| Literal.new(lit)}.to_set
+    end
+
     attr_reader :raw, :positive, :hash
     def initialize(raw)
       @raw = raw

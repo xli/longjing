@@ -112,6 +112,6 @@ class ProblemTest < Test::Unit::TestCase
   end
 
   def state(raw)
-    Longjing.state(raw.to_set)
+    Longjing.state(Longjing::Literal.set(raw))
   end
 end
