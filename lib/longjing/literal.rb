@@ -15,6 +15,10 @@ module Longjing
       @raw[0] == :-
     end
 
+    def exp?
+      inequal?
+    end
+
     def inequal?
       @raw[0] == :!=
     end

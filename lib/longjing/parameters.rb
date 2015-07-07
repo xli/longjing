@@ -1,4 +1,5 @@
 require 'set'
+require 'longjing/literal'
 
 module Longjing
   class Parameters
@@ -11,6 +12,18 @@ module Longjing
       @params = Array(params)
       @names = @params.map {|p| p[0]}
       @types = Set.new(@params.map {|param| param[1]})
+    end
+
+    def propositionalize(action, objects)
+      permutate(objects).map do |variables|
+        precond = substitute(action[:precond], variables)
+        exps = precond.select(&:exp?)
+        next unless exps.empty? || exps.all?(&:match?)
+
+        action.merge(:precond => precond - exps,
+                     :effect => substitute(action[:effect], variables),
+                     :describe => [action[:name], *arguments(variables)])
+      end.compact
     end
 
     # arguments:
@@ -49,6 +62,12 @@ module Longjing
 
     def arguments(variables)
       names.map {|n| variables[n]}
+    end
+
+    def substitute(literals, variables)
+      literals.map do |lit|
+        Literal.new(lit.map { |atom| variables[atom] || atom })
+      end
     end
   end
 end

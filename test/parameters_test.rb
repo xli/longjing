@@ -173,9 +173,35 @@ class ParametersTest < Test::Unit::TestCase
     assert_equal([:p1, nil], params.arguments({p: :p1}))
   end
 
+  def test_propositionalize_should_eval_exps_in_precondition
+    action = {
+      name: :fly,
+      parameters: [[:p, :plane], [:from, :airport], [:to, :airport]],
+      precond: [[:at, :p, :from],
+                [:!=, :from, :to]],
+      effect: [
+        [:at, :p, :to],
+        [:-, :at, :p, :from]
+      ]
+    }
+    params = parameters(action[:parameters])
+    actions = params.propositionalize(action, [
+                                        [:p1, :plane],
+                                        [:sfo, :airport],
+                                        [:jfk, :airport]
+                                      ])
+    assert_equal 2, actions.size
+    assert_equal [literal([:at, :p1, :sfo])], actions[0][:precond]
+    assert_equal [literal([:at, :p1, :jfk])], actions[1][:precond]
+  end
+
   def test_names
     params = parameters([[:p, :plane], [:to, :airport]])
     assert_equal [:p, :to], params.names
+  end
+
+  def literal(lit)
+    Longjing::Literal.new(lit)
   end
 
   def four_arguments
