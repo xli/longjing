@@ -101,14 +101,14 @@ class ProblemTest < Test::Unit::TestCase
 
   def test_objects
     prob = Longjing.problem(cake_problem)
-    assert_equal [[:cake, nil]], prob.objects
+    assert_equal [[:cake, nil]], prob.to_h[:objects]
     prob = Longjing.problem(cargo_transportation_problem)
     assert_equal [[:c1, :cargo],
                   [:c2, :cargo],
                   [:p1, :plane],
                   [:p2, :plane],
                   [:sfo, :airport],
-                  [:jfk, :airport]], prob.objects
+                  [:jfk, :airport]], prob.to_h[:objects]
   end
 
   def state(raw)

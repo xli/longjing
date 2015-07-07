@@ -5,7 +5,7 @@ require 'longjing/literal'
 
 module Longjing
   class Problem
-    attr_reader :initial, :objects
+    attr_reader :initial
 
     def initialize(data)
       typing = data[:types] != nil ? lambda {|o| o} : lambda {|o| [o, nil]}
@@ -15,7 +15,16 @@ module Longjing
         params.propositionalize(action, @objects)
       end.flatten
       @initial = State.new(Literal.set(data[:init]))
-      @goal = Literal.set(data[:goal])
+      @goal = data[:goal].map{|lit| Literal.new(lit)}
+    end
+
+    def to_h
+      {
+        :goal => @goal,
+        :initial => @initial,
+        :actions => @actions,
+        :objects => @objects
+      }
     end
 
     def goal?(state)
