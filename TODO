@@ -1,7 +1,7 @@
 * planning graph
-** support typing
+** !support typing
 *** Inheritance
-** propositionalize action schema
+** !propositionalize action schema
 ** planning graph for heuristic estimation
 *** ? A* search
 *** Enforced hill climbing search
