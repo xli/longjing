@@ -9,8 +9,23 @@ module Longjing
       end
 
       def match?(set)
-        @pos.all?{|lit| set.include?(lit)} &&
+        pos_subset?(set) &&
           @neg.all?{|lit| !set.include?(lit)}
+      end
+
+      def pos_subset?(set)
+        @pos.all?{|lit| set.include?(lit)}
+      end
+
+      def apply(set)
+        ret = set.dup
+        @pos.each { |lit| ret << lit }
+        @neg.each { |lit| ret.delete(lit) }
+        ret
+      end
+
+      def to_h
+        @pos.map(&:raw) + @neg.map(&:negative).map(&:raw)
       end
     end
 

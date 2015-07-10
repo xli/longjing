@@ -6,7 +6,7 @@ module Longjing
     def initialize(hash)
       @name = hash[:name]
       @precond = Literal.list(hash[:precond])
-      @effect = hash[:effect]
+      @effect = Literal.list(hash[:effect])
       @describe = hash[:describe]
     end
 
@@ -15,13 +15,7 @@ module Longjing
     end
 
     def result(state)
-      raw = @effect.inject(state.raw.dup) do |memo, effect|
-        if effect.negative?
-          memo.delete(effect.positive)
-        else
-          memo << effect
-        end
-      end
+      raw = @effect.apply(state.raw)
       State.new(raw, state.path + [describe])
     end
   end
