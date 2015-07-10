@@ -2,6 +2,7 @@ require 'set'
 require 'longjing/state'
 require 'longjing/parameters'
 require 'longjing/literal'
+require 'longjing/action'
 
 module Longjing
   class Problem
@@ -12,10 +13,10 @@ module Longjing
       @objects = data[:objects].map(&typing)
       @actions = data[:actions].map do |action|
         params = Parameters.new(Array(action[:parameters]).map(&typing))
-        params.propositionalize(action, @objects)
+        params.propositionalize(action, @objects).map{|h| Action.new(h)}
       end.flatten
       @initial = State.new(Literal.set(data[:init]))
-      @goal = data[:goal].map{|lit| Literal.new(lit)}
+      @goal = Literal.list(data[:goal])
     end
 
     def to_h
@@ -28,32 +29,17 @@ module Longjing
     end
 
     def goal?(state)
-      @goal.all? do |lit|
-        lit.negative? ? !state.include?(lit.positive) : state.include?(lit)
-      end
+      @goal.match?(state.raw)
     end
 
     def actions(state)
       @actions.select do |action|
-        action[:precond].all? do |cond|
-          if cond.negative?
-            !state.include?(cond.positive)
-          else
-            state.include?(cond)
-          end
-        end
+        action.executable?(state)
       end
     end
 
     def result(action, state)
-      raw = action[:effect].inject(state.raw.dup) do |memo, effect|
-        if effect.negative?
-          memo.delete(effect.positive)
-        else
-          memo << effect
-        end
-      end
-      State.new(raw, state.path + [action[:describe]])
+      action.result(state)
     end
   end
 end

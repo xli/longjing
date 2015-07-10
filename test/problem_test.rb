@@ -8,28 +8,28 @@ class ProblemTest < Test::Unit::TestCase
 
   def test_goal_test
     prob = Longjing.problem(cake_problem)
-    assert prob.goal?([[:have, :cake], [:eaten, :cake]].to_set)
-    assert prob.goal?([[:eaten, :cake], [:have, :cake]].to_set)
-    assert prob.goal?([[:have, :cake], [:eaten, :cake], [:something, :else]].to_set)
-    assert !prob.goal?([[:eaten, :cake]].to_set)
-    assert !prob.goal?([[:have, :cake]].to_set)
+    assert prob.goal?(state([[:have, :cake], [:eaten, :cake]]))
+    assert prob.goal?(state([[:eaten, :cake], [:have, :cake]]))
+    assert prob.goal?(state([[:have, :cake], [:eaten, :cake], [:something, :else]]))
+    assert !prob.goal?(state([[:eaten, :cake]]))
+    assert !prob.goal?(state([[:have, :cake]]))
 
     prob = Longjing.problem(cake_problem.
                              merge(goal: [[:-, :have, :cake]]))
-    assert prob.goal?([].to_set)
+    assert prob.goal?(state([]))
   end
 
   def test_actions
     prob = Longjing.problem(cake_problem)
     actions = prob.actions(state([[:have, :cake]]))
     assert_equal 1, actions.size
-    assert_equal :eat, actions[0][:name]
-    assert_equal [:eat], actions[0][:describe]
+    assert_equal :eat, actions[0].name
+    assert_equal [:eat], actions[0].describe
 
     actions = prob.actions(state([[:eaten, :cake]]))
     assert_equal 1, actions.size
-    assert_equal :bake, actions[0][:name]
-    assert_equal [:bake], actions[0][:describe]
+    assert_equal :bake, actions[0].name
+    assert_equal [:bake], actions[0].describe
   end
 
   def test_result
@@ -45,31 +45,31 @@ class ProblemTest < Test::Unit::TestCase
     actions = prob.actions(prob.initial)
 
     assert_equal 4, actions.size
-    assert_equal :move, actions[0][:name]
+    assert_equal :move, actions[0].name
     assert_equal [[:on, :B, :C],
                   [:clear, :table],
                   [:-, :on, :B, :table],
-                  [:-, :clear, :C]], actions[0][:effect].map(&:raw)
-    assert_equal [:move, :B, :table, :C], actions[0][:describe]
+                  [:-, :clear, :C]], actions[0].effect.map(&:raw)
+    assert_equal [:move, :B, :table, :C], actions[0].describe
 
-    assert_equal :move, actions[1][:name]
+    assert_equal :move, actions[1].name
     assert_equal [[:on, :C, :B],
                   [:clear, :A],
                   [:-, :on, :C, :A],
-                  [:-, :clear, :B]], actions[1][:effect].map(&:raw)
-    assert_equal [:move, :C, :A, :B], actions[1][:describe]
+                  [:-, :clear, :B]], actions[1].effect.map(&:raw)
+    assert_equal [:move, :C, :A, :B], actions[1].describe
 
-    assert_equal :moveToTable, actions[2][:name]
+    assert_equal :moveToTable, actions[2].name
     assert_equal [[:on, :B, :table],
                   [:clear, :table],
-                  [:-, :on, :B, :table]], actions[2][:effect].map(&:raw)
-    assert_equal [:moveToTable, :B, :table], actions[2][:describe]
+                  [:-, :on, :B, :table]], actions[2].effect.map(&:raw)
+    assert_equal [:moveToTable, :B, :table], actions[2].describe
 
-    assert_equal :moveToTable, actions[3][:name]
+    assert_equal :moveToTable, actions[3].name
     assert_equal [[:on, :C, :table],
                   [:clear, :A],
-                  [:-, :on, :C, :A]], actions[3][:effect].map(&:raw)
-    assert_equal [:moveToTable, :C, :A], actions[3][:describe]
+                  [:-, :on, :C, :A]], actions[3].effect.map(&:raw)
+    assert_equal [:moveToTable, :C, :A], actions[3].describe
   end
 
   def test_result_with_parameters
