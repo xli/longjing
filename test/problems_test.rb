@@ -25,6 +25,6 @@ class ProblemsTest < Test::Unit::TestCase
   def assert_planning_solution(problem)
     result = Longjing.plan(problem)
     assert !result[:solution].nil?
-    assert_equal problem[:solution], result[:solution]
+    Longjing.validate!(Longjing.problem(problem), result[:solution])
   end
 end

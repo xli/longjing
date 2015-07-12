@@ -6,10 +6,7 @@ class LongjingTest < Test::Unit::TestCase
     result = Longjing.plan(problem)
     assert result[:solution]
     assert result[:state]
-    assert result[:frontier]
-    assert result[:explored]
-
-    assert_equal [[:eat], [:bake]], result[:solution]
+    Longjing.validate!(Longjing.problem(problem), result[:solution])
   end
 
   def test_unresolved_problem
@@ -18,8 +15,5 @@ class LongjingTest < Test::Unit::TestCase
     result = Longjing.plan(problem)
     assert_nil result[:solution]
     assert_nil result[:state]
-
-    assert result[:frontier]
-    assert result[:explored]
   end
 end
