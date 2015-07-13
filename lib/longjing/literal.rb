@@ -3,6 +3,8 @@ require 'set'
 module Longjing
   class Literal
     class List
+      attr_reader :pos, :neg
+
       def initialize(literals)
         @pos = literals.select(&:positive?)
         @neg = literals.select(&:negative?).collect(&:positive)
@@ -24,7 +26,11 @@ module Longjing
         ret
       end
 
-      def to_h
+      def to_s
+        to_a.inspect
+      end
+
+      def to_a
         @pos.map(&:raw) + @neg.map(&:negative).map(&:raw)
       end
     end
@@ -78,16 +84,12 @@ module Longjing
     end
 
     def ==(literal)
-      if literal.is_a?(Literal)
-        @raw == literal.raw
-      else
-        @raw == literal
-      end
+      literal && @raw == literal.raw
     end
     alias :eql? :==
 
-    def inspect
-      "Literal#{@raw.inspect}"
+    def to_s
+      "Literal[#{@raw.inspect}]"
     end
   end
 end

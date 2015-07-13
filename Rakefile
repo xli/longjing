@@ -29,17 +29,15 @@ end
 task :profile do
   require 'ruby-prof'
   puts "Profile started"
-  [:breadth_first].each_with_index do |strategy, index|
-    result = RubyProf.profile do
-      problems.each do |prob|
-        Longjing.plan(send(prob[:method]), strategy)
-      end
+  result = RubyProf.profile do
+    problems.each do |prob|
+      Longjing.plan(send(prob[:method]))
     end
-    puts "output: profile_#{strategy}.html"
-    printer = RubyProf::GraphHtmlPrinter.new(result)
-    File.open("profile_#{strategy}.html", 'w') do |f|
-      printer.print(f, {})
-    end
+  end
+  puts "output: profile.html"
+  printer = RubyProf::GraphHtmlPrinter.new(result)
+  File.open("profile.html", 'w') do |f|
+    printer.print(f, {})
   end
 end
 

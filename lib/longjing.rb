@@ -1,7 +1,7 @@
 require "longjing/version"
 require 'longjing/state'
 require 'longjing/parameters'
-require 'longjing/search'
+require 'longjing/ff'
 require 'longjing/problem'
 
 module Longjing
@@ -19,8 +19,8 @@ module Longjing
     Problem.new(data)
   end
 
-  def plan(problem, strategy=:breadth_first)
-    Search.new(strategy).resolve(self.problem(problem))
+  def plan(problem)
+    FF::Search.new.resolve(self.problem(problem))
   end
 
   def validate!(problem, solution)
@@ -37,7 +37,7 @@ module Longjing
       if action.executable?(state)
         state = action.result(state)
       else
-        raise "Invalid solution, failed at: #{step.inspect}"
+        raise "Invalid solution, failed at step: #{step.inspect}"
       end
     end
     unless goal.match?(state)

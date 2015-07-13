@@ -15,5 +15,9 @@ module Longjing
       state && @raw == state.raw
     end
     alias :eql? :==
+
+    def to_s
+      "State[#{@raw.to_a.map(&:raw).inspect}, #{@path.inspect}]"
+    end
   end
 end
