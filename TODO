@@ -2,9 +2,15 @@
 ** !support typing
 *** Inheritance
 ** !propositionalize action schema
-** planning graph for heuristic estimation
+** !planning graph for heuristic estimation
 *** ? A* search
-*** Enforced hill climbing search
-* separate domain and problem descriptions
+*** !Enforced hill climbing search
 * FF
+** !relaxed graph plan as heuristic
+** !hill climbing search
+** !handle negative goal
+** helper actions
+** added goal deletion
+** fallback to greedy best-first search when hill climbing search failed
+* separate domain and problem descriptions
 * support pddl 3.1 strip pddl input and output
