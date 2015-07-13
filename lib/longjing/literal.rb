@@ -36,6 +36,12 @@ module Longjing
     end
 
     class << self
+
+      def create(raw)
+        @literals ||= {}
+        @literals[raw] ||= Literal.new(raw)
+      end
+
       def set(raw)
         literals(raw).to_set
       end
@@ -45,7 +51,7 @@ module Longjing
       end
 
       def literals(raws)
-        raws.map{|lit| lit.is_a?(Literal) ? lit : Literal.new(lit)}
+        raws.map{|lit| lit.is_a?(Literal) ? lit : Literal.create(lit)}
       end
     end
 
@@ -56,11 +62,11 @@ module Longjing
     end
 
     def positive
-      @positive ||= negative? ? Literal.new(@raw[1..-1]) : self
+      @positive ||= negative? ? Literal.create(@raw[1..-1]) : self
     end
 
     def negative
-      @negative ||= negative? ? self : Literal.new([:-].concat(@raw))
+      @negative ||= negative? ? self : Literal.create([:-].concat(@raw))
     end
 
     def positive?
@@ -82,11 +88,6 @@ module Longjing
     def match?
       @raw[1] != @raw[2]
     end
-
-    def ==(literal)
-      literal && @raw == literal.raw
-    end
-    alias :eql? :==
 
     def to_s
       "Literal[#{@raw.inspect}]"

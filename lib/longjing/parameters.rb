@@ -66,7 +66,7 @@ module Longjing
 
     def substitute(literals, variables)
       literals.map do |lit|
-        Literal.new(lit.map { |atom| variables[atom] || atom })
+        Literal.create(lit.map { |atom| variables[atom] || atom })
       end
     end
   end

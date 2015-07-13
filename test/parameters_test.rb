@@ -201,7 +201,7 @@ class ParametersTest < Test::Unit::TestCase
   end
 
   def literal(lit)
-    Longjing::Literal.new(lit)
+    Longjing::Literal.create(lit)
   end
 
   def four_arguments

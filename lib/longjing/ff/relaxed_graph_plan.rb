@@ -6,7 +6,7 @@ module Longjing
         def initialize(action)
           @pre = action.precond.pos.to_set
           @add = action.effect.pos
-          @name = Literal.new([:action, action.describe])
+          @name = Literal.create([:action, action.describe])
           @counter = @pre.size
           if @pre.empty?
             @difficulty = 0
