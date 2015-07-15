@@ -4,27 +4,26 @@ module Longjing
       class Action
         attr_reader :name, :add, :pre, :difficulty
         def initialize(action)
-          @pre = action.precond.pos.to_set
+          @pre = action.precond.pos
           @add = action.effect.pos
           @name = Literal.create([:action, action.describe])
-          @counter = @pre.size
-          if @pre.empty?
-            @difficulty = 0
-          end
+          reset
         end
 
-        def count(lit, step)
-          if @pre.include?(lit)
-            @difficulty ||= step
-            @counter -= 1
-          end
+        def count
+          @counter -= 1
         end
 
         def schedule?
           @counter == 0
         end
 
+        def update_difficulty(step)
+          @difficulty = step
+        end
+
         def reset
+          @difficulty = @pre.empty? ? 0 : nil
           @counter = @pre.size
         end
 
@@ -52,7 +51,12 @@ module Longjing
         step = 0
         scheduled_facts = state.raw
         scheduled_actions = []
+        pre2actions = {}
         @actions.each do |action|
+          action.pre.each do |lit|
+            pre2actions[lit] ||= []
+            pre2actions[lit] << action
+          end
           action.reset
           if action.pre.empty?
             scheduled_actions << action
@@ -61,10 +65,11 @@ module Longjing
         loop do
           scheduled_facts.each do |lit|
             layers[lit] = step
-            if actions = @pre2actions[lit]
-              actions.each do |action|
-                action.count(lit, step)
+            if actions = pre2actions[lit]
+              actions.delete_if do |action|
+                action.count
                 if action.schedule?
+                  action.update_difficulty(step)
                   scheduled_actions << action
                 end
               end
@@ -125,13 +130,8 @@ module Longjing
         @actions = problem[:actions].map do |action|
           Action.new(action)
         end
-        @pre2actions = {}
         @add2actions = {}
         @actions.each do |action|
-          action.pre.each do |lit|
-            @pre2actions[lit] ||= []
-            @pre2actions[lit] << action
-          end
           action.add.each do |lit|
             @add2actions[lit] ||= []
             @add2actions[lit] << action
