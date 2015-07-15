@@ -2,12 +2,27 @@ require "bundler/gem_tasks"
 require 'rake/testtask'
 require 'longjing'
 
-def problems
+def pddl_problems
+  Dir['test/domains/*.pddl'].each do |f|
+    Longjing.load(f)
+  end
+
+  Dir['test/problems/*.pddl'].map do |f|
+    prob = Longjing.load(f)
+    {name: prob[:problem_name], prob: prob}
+  end
+end
+
+def internal_format_problems
   Dir['test/problems/*.rb'].map do |f|
     require_relative f
     name = File.basename(f).split('.').first
-    {name: name, method: name + "_problem"}
+    {name: name, prob: send(name + "_problem")}
   end
+end
+
+def problems
+  internal_format_problems + pddl_problems
 end
 
 Rake::TestTask.new do |t|
@@ -21,7 +36,7 @@ task :default => [:gen_problems_test, :test, :benchmark]
 task :gen_problems_test do
   File.open('test/problems_test.rb', 'w') do |f|
     erb = ERB.new(File.read('test/problems_test.rb.erb'))
-    problem_names = problems.map{|p| p[:name]}
+    problem_names = internal_format_problems.map{|p| p[:name]}
     f.write(erb.result(binding))
   end
 end
@@ -31,7 +46,7 @@ task :profile do
   puts "Profile started"
   result = RubyProf.profile do
     problems.each do |prob|
-      Longjing.plan(send(prob[:method]))
+      Longjing.plan(prob[:prob])
     end
   end
   puts "output: profile.html"
@@ -51,7 +66,7 @@ task :benchmark do
   Benchmark.benchmark(Benchmark::CAPTION, label_len, Benchmark::FORMAT, ">total:", ">avg:") do |x|
     bms = problems.map do |prob|
       x.report(prob[:name].ljust(20)) do
-        Longjing.plan(send(prob[:method]))
+        Longjing.plan(prob[:prob])
       end
     end
     [bms.reduce(:+), bms.reduce(:+)/bms.size]

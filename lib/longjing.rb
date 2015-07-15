@@ -3,9 +3,13 @@ require 'longjing/state'
 require 'longjing/parameters'
 require 'longjing/ff'
 require 'longjing/problem'
+require 'longjing/pddl'
 
 module Longjing
   module_function
+  def load(pddl)
+    PDDL.parse(File.read(pddl))
+  end
 
   def state(raw, path=[])
     State.new(raw, path)
