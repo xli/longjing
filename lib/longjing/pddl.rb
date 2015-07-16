@@ -39,13 +39,15 @@ module Longjing
           details = to_hash(eval(list[1..-1].each_slice(2).to_a))
           [:actions, details.merge(name: list[0])]
         when :parameters
-          { parameters: list[0] }
+          { parameters: expand_hash(list[0]) }
         when :precondition
           { precond: expand_value(list[0]) }
         when :goal, :effect
           { name => expand_value(list[0]) }
         when :requirements, :init, :objects, :predicates
           { name => list }
+        when :types
+          { name => expand_hash(list) }
         when 'not'
           [:-, *eval(list[0])]
         when 'and'
@@ -67,6 +69,24 @@ module Longjing
 
       def expand_value(list)
         atom?(list) ? [list] : eval(list)
+      end
+
+      def expand_hash(list)
+        return list unless list.include?(:-)
+        values = []
+        next_is_type = false
+        list.inject([]) do |memo, item|
+          if next_is_type
+            next_is_type = false
+            memo.concat(values.map {|v| [v, item]})
+            values = []
+          elsif item == :-
+            next_is_type = true
+          else
+            values << item
+          end
+          memo
+        end
       end
 
       def to_hash(list)

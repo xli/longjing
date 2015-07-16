@@ -25,10 +25,10 @@ module_eval(<<'...end pddl.y/module_eval...', 'pddl.y', 28)
         @tokens.push [:OPEN_BRACE, m]
       when m = scanner.scan(/[\)]/)
         @tokens.push [:CLOSE_BRACE, m]
-      when m = scanner.scan(/(>=|<=)\b/)
-        @tokens.push [:OP, m.to_sym]
-      when m = scanner.scan(/([-\/*+><=])\b/)
-        @tokens.push [:OP, m.to_sym]
+      when m = scanner.scan(/(>=|<=)\s/)
+        @tokens.push [:OP, m.strip.to_sym]
+      when m = scanner.scan(/[-\/*+><=]\s/)
+        @tokens.push [:OP, m.strip.to_sym]
       when m = scanner.scan(/(\d+(\.\d+)?)\b/)
         @tokens.push [:NUMBER, m.to_f]
       when m = scanner.scan(/:([\w\-_]*)\b/i)
@@ -36,7 +36,7 @@ module_eval(<<'...end pddl.y/module_eval...', 'pddl.y', 28)
       when m = scanner.scan(/([a-z?][\w\-_]*)\b/i)
         @tokens.push [:ID, m]
       else
-        raise "unexpected characters #{scanner.peek(5)}"
+        raise "unexpected characters: #{scanner.peek(5).inspect}"
       end
     end
     @tokens.push [false, false]

@@ -91,6 +91,27 @@ class PDDLTest < Test::Unit::TestCase
     Longjing.validate!(Longjing.problem(pddl), result[:solution])
   end
 
+  def test_parse_typing
+    pddl = PDDL.parse(read('barman'))
+    expected = [['hand', 'object'],
+                ['level', 'object'],
+                ['beverage', 'object'],
+                ['dispenser', 'object'],
+                ['container', 'object'],
+                ["ingredient", 'beverage'],
+                ["cocktail", 'beverage'],
+                ['shot', 'container'],
+                ['shaker', 'container']]
+    assert_equal expected, pddl[:types]
+
+    expected = [['?h', 'hand'],
+                ['?c', 'container']]
+    assert_equal 'grasp', pddl[:actions][0][:name]
+    assert_equal expected, pddl[:actions][0][:parameters]
+
+    assert_equal 'fill-shot', pddl[:actions][2][:name]
+  end
+
   def read(name)
     f = File.expand_path("../domains/#{name}.pddl", __FILE__)
     if File.exist?(f)
