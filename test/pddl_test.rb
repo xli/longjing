@@ -6,8 +6,9 @@ class PDDLTest < Test::Unit::TestCase
   def test_parse_domain
     pddl = PDDL.parse(read('blocksworld-4ops'))
     expected = {
-      :domain_name => 'blocksworld',
+      :domain => 'blocksworld',
       :requirements => [:strips],
+      :predicates => [],
       :actions => [
         {name: "pickup",
          parameters: ["?ob"],
@@ -45,6 +46,7 @@ class PDDLTest < Test::Unit::TestCase
         }
       ]
     }
+
     assert_equal expected.size, pddl.size
     assert_equal expected[:requirements], pddl[:requirements]
     assert_equal expected[:actions].size, pddl[:actions].size
@@ -56,9 +58,9 @@ class PDDLTest < Test::Unit::TestCase
     PDDL.parse(read('blocksworld-4ops'))
     pddl = PDDL.parse(read("blocksworld-4ops-rand-8"))
     expected = {
-      :problem_name => "BW-rand-8",
-      :objects=>["b1", "b2", "b3", "b4", "b5", "b6", "b7", "b8"],
-      :init=>
+      :problem => "BW-rand-8",
+      :objects => ["b1", "b2", "b3", "b4", "b5", "b6", "b7", "b8"],
+      :init =>
       [["arm-empty"],
        ["on-table", "b1"],
        ["on-table", "b2"],

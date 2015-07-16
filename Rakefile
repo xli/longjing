@@ -9,7 +9,7 @@ def pddl_problems
 
   Dir['test/problems/*.pddl'].map do |f|
     prob = Longjing.load(f)
-    {name: prob[:problem_name], prob: prob}
+    {name: prob[:problem], prob: prob}
   end
 end
 

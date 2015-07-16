@@ -11,76 +11,77 @@ module Longjing
       end
 
       def parse(pddl)
-        eval(PDDL.new.parse(pddl), {})
+        eval(PDDL.new.parse(pddl))
       end
 
-      def eval(pddl, context)
+      def eval(pddl)
         if atom?(pddl)
           pddl
+        elsif list?(pddl)
+          pddl.map {|i| eval(i)}
         else
           first, *rest = pddl
-          apply(first, rest, context)
+          apply(first, rest)
         end
       end
 
-      def apply(name, list, context)
+      def apply(name, list)
         case name
         when 'define'
           type, name = list[0]
-          store = case type
-                  when 'domain'
-                    context.merge!(domain_name: name, actions: [])
-                    self.domains
-                  else
-                    context.merge!(problem_name: name)
-                    self.problems
-                  end
-          store[name] = expand_list(list[1..-1], context).merge(context)
+          store = type == 'domain' ? self.domains : self.problems
+          store[name] = to_hash(eval(list[1..-1])).merge(type.to_sym => name)
         when :domain
           self.domains[list[0]].dup
-        when :objects
-          { objects: list }
-        when :init
-          { init: expand_value(list, context) }
         when :goal
-          { goal: expand_value(list, context) }
-        when :requirements
-          { requirements: list }
-        when :predicates
-          {}
+          { goal: expand_value(eval(list[0])) }
         when :action
-          details = expand_list(Hash[*list[1..-1]].to_a, context)
-          context[:actions] << {name: list[0]}.merge(details)
-          {}
+          details = to_hash(eval(list[1..-1].each_slice(2).to_a))
+          [:actions, details.merge(name: list[0])]
         when :parameters
           { parameters: list[0] }
         when :precondition
-          { precond: expand_value(list, context) }
-        when :effect
-          { effect: expand_value(list, context) }
+          { precond: expand_value(list[0]) }
+        when :goal, :effect
+          { name => expand_value(list[0]) }
+        when :requirements, :init, :objects, :predicates
+          { name => list }
         when 'not'
-          [:-, *eval(list[0], context)]
+          [:-, *eval(list[0])]
         when 'and'
           list.map do |item|
-            eval(item, context)
+            eval(item)
           end
         else
-          raise "Unsupported op: #{name} with #{list.inspect}"
+          raise "Unexpected #{name.inspect} with #{list.inspect}"
         end
-      end
-
-      def expand_list(list, context)
-        list.inject({}) do |memo, item|
-          memo.merge(eval(item, context))
-        end
-      end
-
-      def expand_value(list, context)
-        atom?(list[0]) ? list : eval(list[0], context)
       end
 
       def atom?(list)
-        !list.any?{|i| i.is_a?(Array) || i.is_a?(Symbol)}
+        list.all?{|i|i.is_a?(String)}
+      end
+
+      def list?(list)
+        list.all?{|i|i.is_a?(Array)}
+      end
+
+      def expand_value(list)
+        atom?(list) ? [list] : eval(list)
+      end
+
+      def to_hash(list)
+        list.inject({}) do |memo, item|
+          case item
+          when Hash
+            memo.merge(item)
+          when Array
+            name, value = item
+            memo[name] = Array(memo[name]) << value
+            memo
+          else
+            raise "Unexpected value: #{ret.inspect}"
+          end
+        end
       end
     end
   end

@@ -16,4 +16,5 @@
 ** !pddl file parser
 ** analysis support requirements, only do plan with supported problem
 ** test parser with more complex domains and problems
+** typing support
 * full support of pddl 3.1
