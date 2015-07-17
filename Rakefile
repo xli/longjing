@@ -74,3 +74,35 @@ task :benchmark do
   $stdout = stdout
   puts File.read('benchmark.log')
 end
+
+
+task :barman do
+  Longjing::PDDL.parse(File.read('test/domains/barman.pddl'))
+  prob = Longjing.problem(Longjing::PDDL.parse(File.read("test/barman-p2-10-4-13.pddl")))
+
+  require 'benchmark'
+  Benchmark.bm do |x|
+    x.report do
+      graph = Longjing::FF::RelaxedGraphPlan.new(prob)
+      graph.extract(prob.initial)
+      graph.extract(prob.initial)
+      graph.extract(prob.initial)
+      graph.extract(prob.initial)
+      graph.extract(prob.initial)
+    end
+  end
+  require 'ruby-prof'
+  result = RubyProf.profile do
+    graph = Longjing::FF::RelaxedGraphPlan.new(prob)
+    graph.extract(prob.initial)
+    graph.extract(prob.initial)
+    graph.extract(prob.initial)
+    graph.extract(prob.initial)
+    graph.extract(prob.initial)
+  end
+  puts "output: profile.html"
+  printer = RubyProf::GraphHtmlPrinter.new(result)
+  File.open("profile.html", 'w') do |f|
+    printer.print(f, {})
+  end
+end
