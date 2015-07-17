@@ -56,6 +56,8 @@ task :profile do
   end
 end
 
+task :b => :benchmark
+
 task :benchmark do
   require 'benchmark'
   puts "Benchmark started, output: benchmark.log"

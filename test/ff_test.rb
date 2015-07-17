@@ -22,62 +22,67 @@ class FFTest < Test::Unit::TestCase
     #     eaten(cake)
     prob = problem(cake_problem)
     graph = FF::RelaxedGraphPlan.new(prob)
-    layers = graph.layers(prob.initial)
-    assert_equal 0, layers[Literal.create([:have, :cake])]
-    assert_equal 1, layers[Literal.create([:eaten, :cake])]
-    assert_equal 0, layers[Literal.create([:action, [:eat]])]
-    assert_equal 0, layers[Literal.create([:action, [:bake]])]
-    assert_equal 4, layers.size
+    fact_layers, action_layers = graph.layers(prob.initial)
+    assert_equal 0, fact_layers[Literal.create([:have, :cake])]
+    assert_equal 1, fact_layers[Literal.create([:eaten, :cake])]
+    assert_equal 2, fact_layers.size
 
-    layers = graph.layers(State.new(Literal.set([[:eaten, :cake]])))
-    assert_equal 1, layers[Literal.create([:have, :cake])]
-    assert_equal 0, layers[Literal.create([:eaten, :cake])]
-    assert_equal 1, layers[Literal.create([:action, [:eat]])]
-    assert_equal 0, layers[Literal.create([:action, [:bake]])]
-    assert_equal 4, layers.size
+    assert_equal 0, action_layers[Literal.create([:eat])]
+    assert_equal 0, action_layers[Literal.create([:bake])]
+    assert_equal 2, action_layers.size
+
+    fact_layers, action_layers = graph.layers(State.new(Literal.set([[:eaten, :cake]])))
+    assert_equal 1, fact_layers[Literal.create([:have, :cake])]
+    assert_equal 0, fact_layers[Literal.create([:eaten, :cake])]
+    assert_equal 2, fact_layers.size
+
+    assert_equal 1, action_layers[Literal.create([:eat])]
+    assert_equal 0, action_layers[Literal.create([:bake])]
+    assert_equal 2, action_layers.size
   end
 
   def test_relaxed_layer_memberships_cargo_problem
     prob = problem(cargo_transportation_problem)
     graph = FF::RelaxedGraphPlan.new(prob)
-    layers = graph.layers(prob.initial)
-    assert_equal 0, layers[Literal.create([:at, :c1, :sfo])]
-    assert_equal 0, layers[Literal.create([:at, :c2, :jfk])]
-    assert_equal 0, layers[Literal.create([:at, :p1, :sfo])]
-    assert_equal 0, layers[Literal.create([:at, :p2, :jfk])]
-    assert_equal 0, layers[Literal.create([:action, [:load, :c1, :p1, :sfo]])]
-    assert_equal 0, layers[Literal.create([:action, [:fly, :p1, :sfo, :sfo]])]
-    assert_equal 0, layers[Literal.create([:action, [:fly, :p1, :sfo, :jfk]])]
-    assert_equal 0, layers[Literal.create([:action, [:load, :c2, :p2, :jfk]])]
-    assert_equal 0, layers[Literal.create([:action, [:fly, :p2, :jfk, :sfo]])]
-    assert_equal 0, layers[Literal.create([:action, [:fly, :p2, :jfk, :jfk]])]
-    assert_equal 1, layers[Literal.create([:in, :c1, :p1])]
-    assert_equal 1, layers[Literal.create([:at, :p1, :jfk])]
-    assert_equal 1, layers[Literal.create([:in, :c2, :p2])]
-    assert_equal 1, layers[Literal.create([:at, :p2, :sfo])]
-    assert_equal 1, layers[Literal.create([:action, [:unload, :c1, :p1, :sfo]])]
-    assert_equal 1, layers[Literal.create([:action, [:load, :c2, :p1, :jfk]])]
-    assert_equal 1, layers[Literal.create([:action, [:unload, :c1, :p1, :jfk]])]
-    assert_equal 1, layers[Literal.create([:action, [:fly, :p1, :jfk, :sfo]])]
-    assert_equal 1, layers[Literal.create([:action, [:fly, :p1, :jfk, :jfk]])]
-    assert_equal 1, layers[Literal.create([:action, [:unload, :c2, :p2, :jfk]])]
-    assert_equal 1, layers[Literal.create([:action, [:load, :c1, :p2, :sfo]])]
-    assert_equal 1, layers[Literal.create([:action, [:unload, :c2, :p2, :sfo]])]
-    assert_equal 1, layers[Literal.create([:action, [:fly, :p2, :sfo, :sfo]])]
-    assert_equal 1, layers[Literal.create([:action, [:fly, :p2, :sfo, :jfk]])]
-    assert_equal 2, layers[Literal.create([:in, :c2, :p1])]
-    assert_equal 2, layers[Literal.create([:at, :c1, :jfk])]
-    assert_equal 2, layers[Literal.create([:in, :c1, :p2])]
-    assert_equal 2, layers[Literal.create([:at, :c2, :sfo])]
+    fact_layers, action_layers = graph.layers(prob.initial)
+    assert_equal 0, fact_layers[Literal.create([:at, :c1, :sfo])]
+    assert_equal 0, fact_layers[Literal.create([:at, :c2, :jfk])]
+    assert_equal 0, fact_layers[Literal.create([:at, :p1, :sfo])]
+    assert_equal 0, fact_layers[Literal.create([:at, :p2, :jfk])]
+    assert_equal 1, fact_layers[Literal.create([:in, :c1, :p1])]
+    assert_equal 1, fact_layers[Literal.create([:at, :p1, :jfk])]
+    assert_equal 1, fact_layers[Literal.create([:in, :c2, :p2])]
+    assert_equal 1, fact_layers[Literal.create([:at, :p2, :sfo])]
+    assert_equal 2, fact_layers[Literal.create([:in, :c2, :p1])]
+    assert_equal 2, fact_layers[Literal.create([:at, :c1, :jfk])]
+    assert_equal 2, fact_layers[Literal.create([:in, :c1, :p2])]
+    assert_equal 2, fact_layers[Literal.create([:at, :c2, :sfo])]
+
+    assert_equal 0, action_layers[Literal.create([:load, :c1, :p1, :sfo])]
+    assert_equal 0, action_layers[Literal.create([:fly, :p1, :sfo, :sfo])]
+    assert_equal 0, action_layers[Literal.create([:fly, :p1, :sfo, :jfk])]
+    assert_equal 0, action_layers[Literal.create([:load, :c2, :p2, :jfk])]
+    assert_equal 0, action_layers[Literal.create([:fly, :p2, :jfk, :sfo])]
+    assert_equal 0, action_layers[Literal.create([:fly, :p2, :jfk, :jfk])]
+    assert_equal 1, action_layers[Literal.create([:unload, :c1, :p1, :sfo])]
+    assert_equal 1, action_layers[Literal.create([:load, :c2, :p1, :jfk])]
+    assert_equal 1, action_layers[Literal.create([:unload, :c1, :p1, :jfk])]
+    assert_equal 1, action_layers[Literal.create([:fly, :p1, :jfk, :sfo])]
+    assert_equal 1, action_layers[Literal.create([:fly, :p1, :jfk, :jfk])]
+    assert_equal 1, action_layers[Literal.create([:unload, :c2, :p2, :jfk])]
+    assert_equal 1, action_layers[Literal.create([:load, :c1, :p2, :sfo])]
+    assert_equal 1, action_layers[Literal.create([:unload, :c2, :p2, :sfo])]
+    assert_equal 1, action_layers[Literal.create([:fly, :p2, :sfo, :sfo])]
+    assert_equal 1, action_layers[Literal.create([:fly, :p2, :sfo, :jfk])]
   end
 
   def test_extract_solution_cake_problem
     prob = problem(cake_problem)
     graph = FF::RelaxedGraphPlan.new(prob)
-    expected = [[Literal.create([:action, [:eat]])]]
+    expected = [[Literal.create([:eat])]]
     assert_equal expected, graph.extract(prob.initial)
     state = State.new(Literal.set([[:eaten, :cake]]))
-    assert_equal [[Literal.create([:action, [:bake]])]], graph.extract(state)
+    assert_equal [[Literal.create([:bake])]], graph.extract(state)
   end
 
   def test_extract_solution_cargo_problem
@@ -85,14 +90,14 @@ class FFTest < Test::Unit::TestCase
     graph = FF::RelaxedGraphPlan.new(prob)
     expected = [
       [
-        Literal.create([:action, [:unload, :c1, :p1, :jfk]]),
-        Literal.create([:action, [:unload, :c2, :p2, :sfo]])
+        Literal.create([:unload, :c1, :p1, :jfk]),
+        Literal.create([:unload, :c2, :p2, :sfo])
       ],
       [
-        Literal.create([:action, [:load, :c1, :p1, :sfo]]),
-        Literal.create([:action, [:fly, :p1, :sfo, :jfk]]),
-        Literal.create([:action, [:load, :c2, :p2, :jfk]]),
-        Literal.create([:action, [:fly, :p2, :jfk, :sfo]])
+        Literal.create([:load, :c1, :p1, :sfo]),
+        Literal.create([:fly, :p1, :sfo, :jfk]),
+        Literal.create([:load, :c2, :p2, :jfk]),
+        Literal.create([:fly, :p2, :jfk, :sfo])
       ]
     ]
     assert_equal expected, graph.extract(prob.initial)

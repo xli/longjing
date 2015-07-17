@@ -7,7 +7,7 @@ module Longjing
         def initialize(action)
           @pre = action.precond.pos
           @add = action.effect.pos
-          @name = Literal.create([:action, action.describe])
+          @name = Literal.create(action.describe)
           @count_target = @pre.size
         end
 
@@ -31,7 +31,8 @@ module Longjing
       end
 
       def layers(state)
-        layers = {}
+        fact_layers = {}
+        action_layers = {}
         step = 0
         scheduled_facts = state.raw
         scheduled_actions = []
@@ -51,7 +52,7 @@ module Longjing
         end
         loop do
           scheduled_facts.each do |lit|
-            layers[lit] = step
+            fact_layers[lit] = step
             if actions = pre2actions[lit]
               actions.delete_if do |action|
                 action.counter += 1
@@ -64,27 +65,27 @@ module Longjing
           end
           scheduled_facts = Set.new
           scheduled_actions.each do |action|
-            layers[action.name] = step
+            action_layers[action.name] = step
             action.add.each do |lit|
-              unless layers.has_key?(lit)
+              unless fact_layers.has_key?(lit)
                 scheduled_facts << lit
               end
             end
           end
           scheduled_actions = []
-          break if @goal.pos.all? {|lit| layers.has_key?(lit)}
+          break if @goal.pos.all? {|lit| fact_layers.has_key?(lit)}
           break if scheduled_facts.empty?
           step += 1
         end
-        layers
+        [fact_layers, action_layers]
       end
 
       def extract(state)
-        l = layers(state)
+        fact_layers, action_layers = layers(state)
         marks = Hash.new{|h,k| h[k]=Set.new}
-        layer2goals = Hash.new{|h,k| h[k]=[]}
+        layer2goals = Hash.new{|h,k| h[k]=Set.new}
         @goal.pos.each do |lit|
-          layer = l[lit]
+          layer = fact_layers[lit]
           return nil if layer.nil?
           layer2goals[layer] << lit
         end
@@ -95,12 +96,13 @@ module Longjing
             next if marks[g].include?(i)
             next unless actions = @add2actions[g]
             action = actions.select do |action|
-              l[action.name] == i - 1
+              action_layers[action.name] == i - 1
             end.min_by(&:difficulty)
             next if action.nil?
             action.pre.each do |lit|
-              l[lit] != 0 && !marks[lit].include?(i - 1)
-              layer2goals[l[lit]] << lit
+              if fact_layers[lit] != 0 && !marks[lit].include?(i - 1)
+                layer2goals[fact_layers[lit]] << lit
+              end
             end
             action.add.each do |lit|
               marks[lit] << i
