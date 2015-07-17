@@ -68,7 +68,7 @@ module Longjing
               end
             end
           end
-          scheduled_facts = []
+          scheduled_facts = Set.new
           scheduled_actions.each do |action|
             layers[action.name] = step
             action.add.each do |lit|
