@@ -3,19 +3,12 @@ module Longjing
     class RelaxedGraphPlan
       class Action
         attr_reader :name, :add, :pre, :difficulty
+        attr_accessor :counter
         def initialize(action)
           @pre = action.precond.pos
           @add = action.effect.pos
           @name = Literal.create([:action, action.describe])
           reset
-        end
-
-        def count
-          @counter -= 1
-        end
-
-        def schedule?
-          @counter == 0
         end
 
         def update_difficulty(step)
@@ -67,8 +60,8 @@ module Longjing
             layers[lit] = step
             if actions = pre2actions[lit]
               actions.delete_if do |action|
-                action.count
-                if action.schedule?
+                action.counter -= 1
+                if action.counter == 0
                   action.update_difficulty(step)
                   scheduled_actions << action
                 end
