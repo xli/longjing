@@ -4,9 +4,8 @@ class ParametersTest < Test::Unit::TestCase
   include Longjing
 
   def test_no_typing
-    params = parameters([[:p, nil], [:to, nil]])
-    variables = params.permutate([[:p1, nil], [:p2, nil],
-                                  [:sfo, nil], [:jfk, nil]])
+    params = parameters([:p, :to], nil)
+    variables = params.permutate([:p1, :p2, :sfo, :jfk])
     assert_equal 4*4, variables.size
     expected = [
       {p: :p1,  to: :p1},
@@ -39,7 +38,7 @@ class ParametersTest < Test::Unit::TestCase
   end
 
   def test_permutate_one_params
-    params = parameters([[:p, :plane]])
+    params = parameters([[:p, :plane]], [:plane, :airport, :cargo])
     variables = params.permutate(four_arguments)
     expected = [
       {p: :p1},
@@ -49,7 +48,7 @@ class ParametersTest < Test::Unit::TestCase
   end
 
   def test_permutate_two_params
-    params = parameters([[:p, :plane], [:to, :airport]])
+    params = parameters([[:p, :plane], [:to, :airport]], [:plane, :airport, :cargo])
     variables = params.permutate(four_arguments)
     assert_equal 4, variables.size
     expected = [{p: :p1, to: :sfo},
@@ -60,7 +59,10 @@ class ParametersTest < Test::Unit::TestCase
   end
 
   def test_permutate_dup_types_params
-    params = parameters([[:p, :plane], [:from, :airport], [:to, :airport]])
+    params = parameters([[:p, :plane],
+                         [:from, :airport],
+                         [:to, :airport]],
+                        [:plane, :airport, :cargo])
     variables = params.permutate(four_arguments)
     assert_equal 2*2*2, variables.size
     expected = [
@@ -79,7 +81,8 @@ class ParametersTest < Test::Unit::TestCase
 
   def test_permutate_four_params
     params = parameters([[:p, :plane], [:c, :cargo],
-                         [:from, :airport], [:to, :airport]])
+                         [:from, :airport], [:to, :airport]],
+                       [:plane, :airport, :cargo])
     variables = params.permutate(six_arguments)
     assert_equal 2*4*3*3, variables.size
     expected = [{p: :p1, c: :c1, from: :sfo, to: :sfo},
@@ -158,17 +161,18 @@ class ParametersTest < Test::Unit::TestCase
   end
 
   def test_permutate_arguments_less_than_params
-    params = parameters([[:p, :plane], [:c, :cargo], [:to, :airport]])
+    params = parameters([[:p, :plane], [:c, :cargo], [:to, :airport]],
+                        [:plane, :cargo, :airport])
     assert_equal [{}], params.permutate(four_arguments)
   end
 
   def test_pair_arguments
-    params = parameters([[:p, :plane], [:to, :airport]])
+    params = parameters([[:p, :plane], [:to, :airport]], [:airport, :plane])
     assert_equal({p: :p1, to: :sfo}, params.pair([:p1, :sfo]))
   end
 
   def test_map_arguments_from_variables
-    params = parameters([[:p, :plane], [:to, :airport]])
+    params = parameters([[:p, :plane], [:to, :airport]], [:plane, :airport])
     assert_equal([:p1, :sfo], params.arguments({p: :p1, to: :sfo}))
     assert_equal([:p1, nil], params.arguments({p: :p1}))
   end
@@ -184,7 +188,7 @@ class ParametersTest < Test::Unit::TestCase
         [:-, :at, :p, :from]
       ]
     }
-    params = parameters(action[:parameters])
+    params = parameters(action[:parameters], [:plane, :airport, :cargo])
     actions = params.propositionalize(action, [
                                         [:p1, :plane],
                                         [:sfo, :airport],
@@ -196,8 +200,98 @@ class ParametersTest < Test::Unit::TestCase
   end
 
   def test_names
-    params = parameters([[:p, :plane], [:to, :airport]])
+    params = parameters([[:p, :plane], [:to, :airport]], [:plane, :airport])
     assert_equal [:p, :to], params.names
+  end
+
+  def test_type_inhierencing
+    action = {
+      name: :load,
+      parameters: [[:c, :cargo], [:p, :plane], [:a, :airport]],
+      precond: [
+        [:at, :c, :a],
+        [:at, :p, :a]
+      ],
+      effect: [
+        [:-, :at, :c, :a],
+        [:in, :c, :p]
+      ]
+    }
+    types = [
+      [:cargo, :object],
+      [:plane, :object],
+      [:airport, :object],
+      [:car, :cargo]
+    ]
+    params = parameters(action[:parameters], types)
+    actions = params.propositionalize(action, [
+                                        [:p1, :plane],
+                                        [:sfo, :airport],
+                                        [:modelx, :car],
+                                        [:box, :cargo]
+                                      ])
+    assert_equal 2, actions.size
+    assert_equal [literal([:at, :modelx, :sfo]),
+                  literal([:at, :p1, :sfo])],
+                 actions[0][:precond]
+    assert_equal [literal([:at, :box, :sfo]),
+                  literal([:at, :p1, :sfo])],
+                 actions[1][:precond]
+  end
+
+  def test_handles_no_types_case
+    action = {
+      name: :fly,
+      precond: [[:at, :sfo]],
+      effect: [
+        [:at, :jfk],
+        [:-, :at, :sfo]
+      ]
+    }
+    params = parameters(nil, nil)
+    actions = params.propositionalize(action, [:sfo, :jfk])
+    assert_equal 1, actions.size
+    assert_equal [literal([:at, :sfo])], actions[0][:precond]
+    assert_equal [literal([:at, :jfk]), literal([:-, :at, :sfo])],
+                 actions[0][:effect]
+  end
+
+  def test_handles_no_inherent_types
+    action = {
+      name: :fly,
+      precond: [[:at, :from], [:!=, :from, :to]],
+      effect: [
+        [:at, :to],
+        [:-, :at, :from]
+      ]
+    }
+    params = parameters([[:from, :airport], [:to, :airport]],
+                        [:plane, :airport])
+    objs = [[:sfo, :airport], [:jfk, :airport]]
+    actions = params.propositionalize(action, objs)
+    expected = [{
+                  name: :fly,
+                  describe: [:fly, :sfo, :jfk],
+                  precond: [literal([:at, :sfo])],
+                  effect: [
+                    literal([:at, :jfk]),
+                    literal([:-, :at, :sfo])
+                  ]
+                },
+                {
+                  name: :fly,
+                  describe: [:fly, :jfk, :sfo],
+                  precond: [literal([:at, :jfk])],
+                  effect: [
+                    literal([:at, :sfo]),
+                    literal([:-, :at, :jfk])
+                  ]
+                }
+               ]
+
+    assert_equal 2, actions.size
+    assert_equal expected[0], actions[0]
+    assert_equal expected[1], actions[1]
   end
 
   def literal(lit)

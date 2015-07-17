@@ -7,11 +7,16 @@ module Longjing
 
     # params:
     #    typing:     [[name, type], ...]
-    #    non-typing: [[name, nil], ...]
-    def initialize(params)
-      @params = Array(params)
+    #    non-typing: [name, ...]
+    # types:
+    #    typing:     [[type, parent], ...]
+    #    non-typing: nil
+    def initialize(params, types=nil)
+      @typing = types != nil ? lambda {|o| o} : lambda {|o| [o, nil]}
+      @params = Array(params).map(&@typing)
       @names = @params.map {|p| p[0]}
-      @types = Set.new(@params.map {|param| param[1]})
+      @obj_types = Set.new(@params.map {|param| param[1]})
+      @types = flatten(types)
     end
 
     def propositionalize(action, objects)
@@ -28,15 +33,19 @@ module Longjing
 
     # arguments:
     #    typing:     [[obj, type], ...]
-    #    non-typing: [[obj, nil], ...]
+    #    non-typing: [obj, ...]
     # return: {name => value}
     def permutate(arguments)
+      arguments = arguments.map(&@typing)
       return [{}] if @params.empty?
-      type_args = arguments.inject({}) do |memo, arg|
-        (memo[arg[1]] ||= []) << arg[0] if @types.include?(arg[1])
-        memo
+      type_args = {}
+      @params.each do |name, type|
+        next if type_args.has_key?(type)
+        type_args[type] = arguments.select do |obj, arg_type|
+          arg_type == type || parent?(type, arg_type)
+        end.map{|arg| arg[0]}
       end
-      return [{}] if type_args.size < @types.size
+      return [{}] if type_args.values.reject(&:empty?).size < @obj_types.size
 
       total = @params.map{|_, t|type_args[t].size}.reduce(:*)
       repeat = total
@@ -68,6 +77,25 @@ module Longjing
       literals.map do |lit|
         Literal.create(lit.map { |atom| variables[atom] || atom })
       end
+    end
+
+    private
+    def parent?(p, c)
+      return false if @types.empty?
+      parents = @types[c]
+      parents.nil? ? p == nil : parents.include?(p)
+    end
+
+    def flatten(types)
+      ret = {}
+      Array(types).each do |type, parent|
+        ret[type] ||= []
+        ret[type] << parent
+        if ret[parent]
+          ret[type].concat(ret[parent])
+        end
+      end
+      ret
     end
   end
 end

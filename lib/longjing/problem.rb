@@ -9,10 +9,9 @@ module Longjing
     attr_reader :initial
 
     def initialize(data)
-      typing = data[:types] != nil ? lambda {|o| o} : lambda {|o| [o, nil]}
-      @objects = data[:objects].map(&typing)
+      @objects = data[:objects]
       @actions = data[:actions].map do |action|
-        params = Parameters.new(Array(action[:parameters]).map(&typing))
+        params = Parameters.new(action[:parameters], data[:types])
         params.propositionalize(action, @objects).map{|h| Action.new(h)}
       end.flatten
       @initial = State.new(Literal.set(data[:init]))
@@ -23,8 +22,7 @@ module Longjing
       {
         :goal => @goal,
         :initial => @initial,
-        :actions => @actions,
-        :objects => @objects
+        :actions => @actions
       }
     end
 

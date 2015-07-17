@@ -91,7 +91,7 @@ class PDDLTest < Test::Unit::TestCase
     Longjing.validate!(Longjing.problem(pddl), result[:solution])
   end
 
-  def test_parse_typing
+  def test_parse_typing_for_domain_pddl
     pddl = PDDL.parse(read('barman'))
     expected = [['hand', 'object'],
                 ['level', 'object'],
@@ -112,13 +112,79 @@ class PDDLTest < Test::Unit::TestCase
     assert_equal 'fill-shot', pddl[:actions][2][:name]
   end
 
+  def test_parse_typing_for_problem_pddl
+    PDDL.parse(read('barman'))
+    pddl = PDDL.parse(read("barman-p1-11-4-15"))
+    expected = [["shaker1", "shaker"],
+                ["left", "hand"],
+                ["right", "hand"],
+                ["shot1", "shot"],
+                ["shot2", "shot"],
+                ["shot3", "shot"],
+                ["shot4", "shot"],
+                ["shot5", "shot"],
+                ["shot6", "shot"],
+                ["shot7", "shot"],
+                ["shot8", "shot"],
+                ["shot9", "shot"],
+                ["shot10", "shot"],
+                ["shot11", "shot"],
+                ["shot12", "shot"],
+                ["shot13", "shot"],
+                ["shot14", "shot"],
+                ["shot15", "shot"],
+                ["ingredient1", "ingredient"],
+                ["ingredient2", "ingredient"],
+                ["ingredient3", "ingredient"],
+                ["ingredient4", "ingredient"],
+                ["cocktail1", "cocktail"],
+                ["cocktail2", "cocktail"],
+                ["cocktail3", "cocktail"],
+                ["cocktail4", "cocktail"],
+                ["cocktail5", "cocktail"],
+                ["cocktail6", "cocktail"],
+                ["cocktail7", "cocktail"],
+                ["cocktail8", "cocktail"],
+                ["cocktail9", "cocktail"],
+                ["cocktail10", "cocktail"],
+                ["cocktail11", "cocktail"],
+                ["dispenser1", "dispenser"],
+                ["dispenser2", "dispenser"],
+                ["dispenser3", "dispenser"],
+                ["dispenser4", "dispenser"],
+                ["l0", "level"],
+                ["l1", "level"],
+                ["l2", "level"]]
+    assert_equal expected, pddl[:objects]
+  end
+
+  def test_should_raise_unknown_domain_error_when_parsing_a_problem_use_unknown_domain
+    PDDL.domains.clear
+    assert_raise UnknownDomain do
+      PDDL.parse(read("barman-p1-11-4-15"))
+    end
+  end
+
+  def xtest_search_plan_for_typing_problem
+    PDDL.parse(read('barman'))
+    pddl = PDDL.parse(read("barman-p2-10-4-13"))
+    result = Longjing.plan(pddl)
+    assert !result[:solution].nil?
+    Longjing.validate!(Longjing.problem(pddl), result[:solution])
+  end
+
   def read(name)
     f = File.expand_path("../domains/#{name}.pddl", __FILE__)
     if File.exist?(f)
       File.read(f)
     else
       f = File.expand_path("../problems/#{name}.pddl", __FILE__)
-      File.read(f)
+      if File.exist?(f)
+        File.read(f)
+      else
+        f = File.expand_path("../#{name}.pddl", __FILE__)
+        File.read(f)
+      end
     end
   end
 

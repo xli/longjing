@@ -15,8 +15,8 @@ module Longjing
     State.new(raw, path)
   end
 
-  def parameters(params)
-    Parameters.new(params)
+  def parameters(params, types=nil)
+    Parameters.new(params, types)
   end
 
   def problem(data)

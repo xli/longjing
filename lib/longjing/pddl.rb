@@ -1,6 +1,9 @@
 require 'longjing/pddl.tab'
 
 module Longjing
+  class UnknownDomain < StandardError
+  end
+
   class PDDL
     class << self
       def domains
@@ -32,7 +35,7 @@ module Longjing
           store = type == 'domain' ? self.domains : self.problems
           store[name] = to_hash(eval(list[1..-1])).merge(type.to_sym => name)
         when :domain
-          self.domains[list[0]].dup
+          self.domains[list[0]] || raise(UnknownDomain, list[0])
         when :goal
           { goal: expand_value(eval(list[0])) }
         when :action
@@ -44,7 +47,9 @@ module Longjing
           { precond: expand_value(list[0]) }
         when :goal, :effect
           { name => expand_value(list[0]) }
-        when :requirements, :init, :objects, :predicates
+        when :objects
+          { objects: expand_hash(list) }
+        when :requirements, :init, :predicates
           { name => list }
         when :types
           { name => expand_hash(list) }
