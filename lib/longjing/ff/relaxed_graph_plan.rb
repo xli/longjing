@@ -37,16 +37,16 @@ module Longjing
         scheduled_actions = []
         pre2actions = {}
         @actions.each do |action|
-          action.pre.each do |lit|
-            pre2actions[lit] ||= []
-            pre2actions[lit] << action
-          end
           if action.pre.empty?
             action.difficulty = 0
             scheduled_actions << action
           else
             action.difficulty = Float::INFINITY
             action.counter = 0
+            action.pre.each do |lit|
+              pre2actions[lit] ||= []
+              pre2actions[lit] << action
+            end
           end
         end
         loop do
