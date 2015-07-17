@@ -35,6 +35,8 @@ class Longjing::PDDL
       case
       when scanner.scan(/\s+/)
       # ignore space
+      when scanner.scan(/;.*$/)
+      # ignore comments
       when m = scanner.scan(/[\(]/)
         @tokens.push [:OPEN_BRACE, m]
       when m = scanner.scan(/[\)]/)

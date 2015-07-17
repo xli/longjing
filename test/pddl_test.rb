@@ -165,9 +165,18 @@ class PDDLTest < Test::Unit::TestCase
     end
   end
 
-  def xtest_search_plan_for_typing_problem
-    PDDL.parse(read('barman'))
-    pddl = PDDL.parse(read("barman-p2-10-4-13"))
+  def test_parse_comments
+    pddl = PDDL.parse(read('freecell'))
+    assert pddl
+    assert_equal 'freecell', pddl[:domain]
+    assert_equal [:strips, :typing], pddl[:requirements]
+    assert_equal ["card", "colnum", "cellnum", "num", "suit"], pddl[:types]
+    assert_equal 10, pddl[:actions].size
+  end
+
+  def test_search_plan_for_typing_problem
+    PDDL.parse(read('freecell'))
+    pddl = PDDL.parse(read("freecell-f2-c2-s2-i1-02-12"))
     result = Longjing.plan(pddl)
     assert !result[:solution].nil?
     Longjing.validate!(Longjing.problem(pddl), result[:solution])
