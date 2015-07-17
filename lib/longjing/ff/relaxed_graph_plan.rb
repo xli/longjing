@@ -2,22 +2,13 @@ module Longjing
   module FF
     class RelaxedGraphPlan
       class Action
-        attr_reader :name, :add, :pre, :difficulty
-        attr_accessor :counter
+        attr_reader :name, :add, :pre, :difficulty, :count_target
+        attr_accessor :counter, :difficulty
         def initialize(action)
           @pre = action.precond.pos
           @add = action.effect.pos
           @name = Literal.create([:action, action.describe])
-          reset
-        end
-
-        def update_difficulty(step)
-          @difficulty = step
-        end
-
-        def reset
-          @difficulty = @pre.empty? ? 0 : nil
-          @counter = @pre.size
+          @count_target = @pre.size
         end
 
         def to_s
@@ -50,9 +41,12 @@ module Longjing
             pre2actions[lit] ||= []
             pre2actions[lit] << action
           end
-          action.reset
           if action.pre.empty?
+            action.difficulty = 0
             scheduled_actions << action
+          else
+            action.difficulty = Float::INFINITY
+            action.counter = 0
           end
         end
         loop do
@@ -60,9 +54,9 @@ module Longjing
             layers[lit] = step
             if actions = pre2actions[lit]
               actions.delete_if do |action|
-                action.counter -= 1
-                if action.counter == 0
-                  action.update_difficulty(step)
+                action.counter += 1
+                if action.counter == action.count_target
+                  action.difficulty = step
                   scheduled_actions << action
                 end
               end
