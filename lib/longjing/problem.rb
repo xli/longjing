@@ -32,12 +32,13 @@ module Longjing
 
     def actions(state)
       @actions.select do |action|
-        action.executable?(state)
+        action.precond.match?(state.raw)
       end
     end
 
     def result(action, state)
-      action.result(state)
+      raw = action.effect.apply(state.raw)
+      State.new(raw, state.path + [action.describe])
     end
   end
 end

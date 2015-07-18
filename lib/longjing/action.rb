@@ -10,17 +10,8 @@ module Longjing
       @describe = hash[:describe]
     end
 
-    def executable?(state)
-      @precond.match?(state.raw)
-    end
-
-    def result(state)
-      raw = @effect.apply(state.raw)
-      State.new(raw, state.path + [describe])
-    end
-
     def to_s
-      "Action[#{@describe}, #{@precond}, #{@effect}"
+      "Action[#{@describe}, #{@precond}, #{@effect}]"
     end
   end
 end

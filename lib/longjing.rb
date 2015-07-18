@@ -29,17 +29,17 @@ module Longjing
 
   def validate!(problem, solution)
     raise "No solution" if solution.nil?
-    problem = problem.to_h
-    goal = problem[:goal]
-    actions = problem[:actions].inject({}) do |memo, action|
+    prob = problem.to_h
+    goal = prob[:goal]
+    actions = prob[:actions].inject({}) do |memo, action|
       memo[action.describe] = action
       memo
     end
-    state = problem[:initial]
+    state = prob[:initial]
     solution.each do |step|
       action = actions[step]
-      if action.executable?(state)
-        state = action.result(state)
+      if action.precond.match?(state.raw)
+        state = problem.result(action, state)
       else
         raise "Invalid solution, failed at step: #{step.inspect}"
       end
