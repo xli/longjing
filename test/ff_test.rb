@@ -27,8 +27,8 @@ class FFTest < Test::Unit::TestCase
     assert_equal 1, fact_layers[Literal.create([:eaten, :cake])]
     assert_equal 2, fact_layers.size
 
-    assert_equal 0, action_layers[Literal.create([:eat])]
-    assert_equal 0, action_layers[Literal.create([:bake])]
+    assert_equal 0, action_layers[graph.action_id([:eat])]
+    assert_equal 0, action_layers[graph.action_id([:bake])]
     assert_equal 2, action_layers.size
 
     fact_layers, action_layers = graph.layers(State.new(Literal.set([[:eaten, :cake]])))
@@ -36,8 +36,8 @@ class FFTest < Test::Unit::TestCase
     assert_equal 0, fact_layers[Literal.create([:eaten, :cake])]
     assert_equal 2, fact_layers.size
 
-    assert_equal 1, action_layers[Literal.create([:eat])]
-    assert_equal 0, action_layers[Literal.create([:bake])]
+    assert_equal 1, action_layers[graph.action_id([:eat])]
+    assert_equal 0, action_layers[graph.action_id([:bake])]
     assert_equal 2, action_layers.size
   end
 
@@ -58,31 +58,31 @@ class FFTest < Test::Unit::TestCase
     assert_equal 2, fact_layers[Literal.create([:in, :c1, :p2])]
     assert_equal 2, fact_layers[Literal.create([:at, :c2, :sfo])]
 
-    assert_equal 0, action_layers[Literal.create([:load, :c1, :p1, :sfo])]
-    assert_equal 0, action_layers[Literal.create([:fly, :p1, :sfo, :sfo])]
-    assert_equal 0, action_layers[Literal.create([:fly, :p1, :sfo, :jfk])]
-    assert_equal 0, action_layers[Literal.create([:load, :c2, :p2, :jfk])]
-    assert_equal 0, action_layers[Literal.create([:fly, :p2, :jfk, :sfo])]
-    assert_equal 0, action_layers[Literal.create([:fly, :p2, :jfk, :jfk])]
-    assert_equal 1, action_layers[Literal.create([:unload, :c1, :p1, :sfo])]
-    assert_equal 1, action_layers[Literal.create([:load, :c2, :p1, :jfk])]
-    assert_equal 1, action_layers[Literal.create([:unload, :c1, :p1, :jfk])]
-    assert_equal 1, action_layers[Literal.create([:fly, :p1, :jfk, :sfo])]
-    assert_equal 1, action_layers[Literal.create([:fly, :p1, :jfk, :jfk])]
-    assert_equal 1, action_layers[Literal.create([:unload, :c2, :p2, :jfk])]
-    assert_equal 1, action_layers[Literal.create([:load, :c1, :p2, :sfo])]
-    assert_equal 1, action_layers[Literal.create([:unload, :c2, :p2, :sfo])]
-    assert_equal 1, action_layers[Literal.create([:fly, :p2, :sfo, :sfo])]
-    assert_equal 1, action_layers[Literal.create([:fly, :p2, :sfo, :jfk])]
+    assert_equal 0, action_layers[graph.action_id([:load, :c1, :p1, :sfo])]
+    assert_equal 0, action_layers[graph.action_id([:fly, :p1, :sfo, :sfo])]
+    assert_equal 0, action_layers[graph.action_id([:fly, :p1, :sfo, :jfk])]
+    assert_equal 0, action_layers[graph.action_id([:load, :c2, :p2, :jfk])]
+    assert_equal 0, action_layers[graph.action_id([:fly, :p2, :jfk, :sfo])]
+    assert_equal 0, action_layers[graph.action_id([:fly, :p2, :jfk, :jfk])]
+    assert_equal 1, action_layers[graph.action_id([:unload, :c1, :p1, :sfo])]
+    assert_equal 1, action_layers[graph.action_id([:load, :c2, :p1, :jfk])]
+    assert_equal 1, action_layers[graph.action_id([:unload, :c1, :p1, :jfk])]
+    assert_equal 1, action_layers[graph.action_id([:fly, :p1, :jfk, :sfo])]
+    assert_equal 1, action_layers[graph.action_id([:fly, :p1, :jfk, :jfk])]
+    assert_equal 1, action_layers[graph.action_id([:unload, :c2, :p2, :jfk])]
+    assert_equal 1, action_layers[graph.action_id([:load, :c1, :p2, :sfo])]
+    assert_equal 1, action_layers[graph.action_id([:unload, :c2, :p2, :sfo])]
+    assert_equal 1, action_layers[graph.action_id([:fly, :p2, :sfo, :sfo])]
+    assert_equal 1, action_layers[graph.action_id([:fly, :p2, :sfo, :jfk])]
   end
 
   def test_extract_solution_cake_problem
     prob = problem(cake_problem)
     graph = FF::RelaxedGraphPlan.new(prob)
-    expected = [[Literal.create([:eat])]]
+    expected = [[[:eat]]]
     assert_equal expected, graph.extract(prob.initial)
     state = State.new(Literal.set([[:eaten, :cake]]))
-    assert_equal [[Literal.create([:bake])]], graph.extract(state)
+    assert_equal [[[:bake]]], graph.extract(state)
   end
 
   def test_extract_solution_cargo_problem
@@ -90,14 +90,14 @@ class FFTest < Test::Unit::TestCase
     graph = FF::RelaxedGraphPlan.new(prob)
     expected = [
       [
-        Literal.create([:unload, :c1, :p1, :jfk]),
-        Literal.create([:unload, :c2, :p2, :sfo])
+        [:unload, :c1, :p1, :jfk],
+        [:unload, :c2, :p2, :sfo]
       ],
       [
-        Literal.create([:load, :c1, :p1, :sfo]),
-        Literal.create([:fly, :p1, :sfo, :jfk]),
-        Literal.create([:load, :c2, :p2, :jfk]),
-        Literal.create([:fly, :p2, :jfk, :sfo])
+        [:load, :c1, :p1, :sfo],
+        [:fly, :p1, :sfo, :jfk],
+        [:load, :c2, :p2, :jfk],
+        [:fly, :p2, :jfk, :sfo]
       ]
     ]
     assert_equal expected, graph.extract(prob.initial)

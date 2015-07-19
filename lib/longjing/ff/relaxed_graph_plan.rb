@@ -7,7 +7,7 @@ module Longjing
         def initialize(action)
           @pre = action.precond.pos
           @add = action.effect.pos
-          @name = Literal.create(action.describe)
+          @name = action.describe
           @count_target = @pre.size
         end
 
@@ -18,6 +18,10 @@ module Longjing
 
       def initialize(problem)
         build(problem.to_h)
+      end
+
+      def action_id(name)
+        @actions.find{|a|a.name == name}.object_id
       end
 
       def distance(state)
@@ -65,7 +69,7 @@ module Longjing
           end
           scheduled_facts = Set.new
           scheduled_actions.each do |action|
-            action_layers[action.name] = step
+            action_layers[action.object_id] = step
             action.add.each do |lit|
               unless fact_layers.has_key?(lit)
                 scheduled_facts << lit
@@ -96,7 +100,7 @@ module Longjing
             next if marks[g].include?(i)
             next unless actions = @add2actions[g]
             action = actions.select do |action|
-              action_layers[action.name] == i - 1
+              action_layers[action.object_id] == i - 1
             end.min_by(&:difficulty)
             next if action.nil?
             action.pre.each do |lit|
