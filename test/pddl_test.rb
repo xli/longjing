@@ -4,7 +4,7 @@ class PDDLTest < Test::Unit::TestCase
   include Longjing
 
   def test_parse_domain
-    pddl = PDDL.parse(read('blocksworld-4ops'))
+    pddl = PDDL.parse(read_pddl('blocksworld-4ops'))
     expected = {
       :domain => 'blocksworld',
       :requirements => [:strips],
@@ -55,8 +55,8 @@ class PDDLTest < Test::Unit::TestCase
   end
 
   def test_parse_problem_pddl
-    PDDL.parse(read('blocksworld-4ops'))
-    pddl = PDDL.parse(read("blocksworld-4ops-rand-8"))
+    PDDL.parse(read_pddl('blocksworld-4ops'))
+    pddl = PDDL.parse(read_pddl("blocksworld-4ops-rand-8"))
     expected = {
       :problem => "BW-rand-8",
       :objects => ["b1", "b2", "b3", "b4", "b5", "b6", "b7", "b8"],
@@ -84,15 +84,15 @@ class PDDLTest < Test::Unit::TestCase
   end
 
   def test_search_plan
-    PDDL.parse(read('blocksworld-4ops'))
-    pddl = PDDL.parse(read("blocksworld-4ops-rand-8"))
+    PDDL.parse(read_pddl('blocksworld-4ops'))
+    pddl = PDDL.parse(read_pddl("blocksworld-4ops-rand-8"))
     result = Longjing.plan(pddl)
     assert !result[:solution].nil?
     Longjing.validate!(Longjing.problem(pddl), result[:solution])
   end
 
   def test_parse_typing_for_domain_pddl
-    pddl = PDDL.parse(read('barman'))
+    pddl = PDDL.parse(read_pddl('barman'))
     expected = [['hand', 'object'],
                 ['level', 'object'],
                 ['beverage', 'object'],
@@ -113,8 +113,8 @@ class PDDLTest < Test::Unit::TestCase
   end
 
   def test_parse_typing_for_problem_pddl
-    PDDL.parse(read('barman'))
-    pddl = PDDL.parse(read("barman-p1-11-4-15"))
+    PDDL.parse(read_pddl('barman'))
+    pddl = PDDL.parse(read_pddl("barman-p1-11-4-15"))
     expected = [["shaker1", "shaker"],
                 ["left", "hand"],
                 ["right", "hand"],
@@ -161,12 +161,12 @@ class PDDLTest < Test::Unit::TestCase
   def test_should_raise_unknown_domain_error_when_parsing_a_problem_use_unknown_domain
     PDDL.domains.clear
     assert_raise UnknownDomain do
-      PDDL.parse(read("barman-p1-11-4-15"))
+      PDDL.parse(read_pddl("barman-p1-11-4-15"))
     end
   end
 
   def test_parse_comments
-    pddl = PDDL.parse(read('freecell'))
+    pddl = PDDL.parse(read_pddl('freecell'))
     assert pddl
     assert_equal 'freecell', pddl[:domain]
     assert_equal [:strips, :typing], pddl[:requirements]
@@ -175,26 +175,11 @@ class PDDLTest < Test::Unit::TestCase
   end
 
   def test_search_plan_for_typing_problem
-    PDDL.parse(read('freecell'))
-    pddl = PDDL.parse(read("freecell-f2-c2-s2-i1-02-12"))
+    PDDL.parse(read_pddl('freecell'))
+    pddl = PDDL.parse(read_pddl("freecell-f2-c2-s2-i1-02-12"))
     result = Longjing.plan(pddl)
     assert !result[:solution].nil?
     Longjing.validate!(Longjing.problem(pddl), result[:solution])
-  end
-
-  def read(name)
-    f = File.expand_path("../domains/#{name}.pddl", __FILE__)
-    if File.exist?(f)
-      File.read(f)
-    else
-      f = File.expand_path("../problems/#{name}.pddl", __FILE__)
-      if File.exist?(f)
-        File.read(f)
-      else
-        f = File.expand_path("../#{name}.pddl", __FILE__)
-        File.read(f)
-      end
-    end
   end
 
 end
