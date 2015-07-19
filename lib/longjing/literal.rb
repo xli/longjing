@@ -94,7 +94,7 @@ module Longjing
     end
 
     def inspect
-      "Literal[#{to_s}]"
+      "L[#{to_s}]"
     end
   end
 end

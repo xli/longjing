@@ -103,20 +103,14 @@ class FFTest < Test::Unit::TestCase
     assert_equal expected, graph.extract(prob.initial).map{|a|a.map(&:name)}
   end
 
-  def test_distance
-    prob = problem(cargo_transportation_problem)
-    graph = FF::RelaxedGraphPlan.new(prob)
-    assert_equal 6, graph.distance(prob.initial)
-  end
-
-  def test_distance_when_there_is_no_solution
+  def test_extract_when_there_is_no_solution
     bwp = blocks_world_problem
     prob = problem(bwp)
     graph = FF::RelaxedGraphPlan.new(prob)
     state = State.new(Literal.set([[:on, :D, :E],
                                    [:block, :D],
                                    [:block, :E]]))
-    assert_nil graph.distance(state)
+    assert_nil graph.extract(state)
   end
 
   def test_resolve_cake_problem

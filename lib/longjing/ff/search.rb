@@ -8,13 +8,13 @@ module Longjing
         handle_negative_goals(problem)
         log { 'initialize relaxed graph plan' }
         h = RelaxedGraphPlan.new(problem)
-        log { 'initial state and distance' }
+        log { "initial:\n  #{problem.initial.raw.to_a.join("\n  ")}" }
+        log { "goal:\n  #{problem.to_h[:goal].to_a.map(&:inspect).join("\n  ")}" }
         state = problem.initial
-        best = h.distance(state)
-        log { "distance: #{best}" }
+        best = distance(state, h)
+        log { "hill climbing starts" }
         until best == 0 do
           state, best = breadth_first(problem, [state], best, h)
-          log { "#{best}: #{state}" }
           return {} unless state
         end
         return {
@@ -27,12 +27,18 @@ module Longjing
         known = Set.new(frontier)
         until frontier.empty? do
           state = frontier.shift
+          log { "\n---\nworking on state: \n  #{state.raw.to_a.join("\n  ")}" }
           problem.actions(state).each do |action|
+            log { "action: #{action.describe}" }
             new_state = problem.result(action, state)
-            next if known.include?(new_state)
+            if known.include?(new_state)
+              log {"  known status"}
+              next
+            end
             # ignore infinite heuristic state
-            if distance = h.distance(new_state)
+            if distance = distance(new_state, h)
               if distance < best
+                log { "act: #{action.describe}" }
                 return [new_state, distance]
               else
                 known << new_state
@@ -45,6 +51,20 @@ module Longjing
       end
 
       private
+      def distance(state, graph)
+        log { "state:\n  #{state.raw.to_a.join("\n  ")}" }
+        if solution = graph.extract(state)
+          if solution.empty?
+            log { "found solution" }
+            0
+          else
+            solution.map(&:size).reduce(:+).tap do |r|
+              log { "relaxed plan: #{r}\n  #{solution.map{|a| a.map(&:name).inspect}.join("\n  ")}" }
+            end
+          end
+        end
+      end
+
       def handle_negative_goals(problem)
         problem = problem.to_h
         neg_goal = Hash[problem[:goal].neg.map {|lit| [lit.positive, lit.negative]}]

@@ -27,16 +27,6 @@ module Longjing
         @actions.find{|a|a.name == name}.object_id
       end
 
-      def distance(state)
-        if solution = extract(state)
-          if solution.empty?
-            0
-          else
-            solution.map(&:size).reduce(:+)
-          end
-        end
-      end
-
       def layers(state)
         fact_layers = {}
         action_layers = {}
