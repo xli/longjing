@@ -11,17 +11,9 @@ end
 
 class Test::Unit::TestCase
   def read_pddl(name)
-    f = File.expand_path("../domains/#{name}.pddl", __FILE__)
+    f = Dir[File.expand_path("../**/#{name}.pddl", __FILE__)].first
     if File.exist?(f)
       File.read(f)
-    else
-      f = File.expand_path("../problems/#{name}.pddl", __FILE__)
-      if File.exist?(f)
-        File.read(f)
-      else
-        f = File.expand_path("../#{name}.pddl", __FILE__)
-        File.read(f)
-      end
     end
   end
 end
