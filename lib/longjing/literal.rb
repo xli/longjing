@@ -90,7 +90,11 @@ module Longjing
     end
 
     def to_s
-      "Literal[#{@raw.inspect}]"
+      @raw.inspect
+    end
+
+    def inspect
+      "Literal[#{to_s}]"
     end
   end
 end

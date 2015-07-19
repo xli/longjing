@@ -1,0 +1,13 @@
+#!/usr/bin/env ruby
+
+lib_path = File.expand_path('../../lib', __FILE__)
+$:.unshift(lib_path)
+
+require 'longjing'
+
+domain, problem = ARGV
+if ARGV.include?('-v')
+  $VERBOSE = true
+end
+
+Longjing.pddl_plan(*(ARGV - ['-v']))

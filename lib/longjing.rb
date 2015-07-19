@@ -20,7 +20,18 @@ module Longjing
   end
 
   def problem(data)
-    Problem.new(data)
+    data.is_a?(Problem) ? data : Problem.new(data)
+  end
+
+  def pddl_plan(domain, problem)
+    PDDL.parse(File.read(domain))
+    pddl = PDDL.parse(File.read(problem))
+    prob = Longjing.problem(pddl)
+    result = Longjing.plan(prob)
+    Longjing.validate!(prob, result[:solution])
+    result[:solution].each_with_index do |step, i|
+      puts "#{i}: #{step.inspect}"
+    end
   end
 
   def plan(problem)

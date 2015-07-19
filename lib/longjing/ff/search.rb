@@ -4,12 +4,17 @@ module Longjing
   module FF
     class Search
       def resolve(problem)
+        log { 'handle negative goals' }
         handle_negative_goals(problem)
-        state = problem.initial
+        log { 'initialize relaxed graph plan' }
         h = RelaxedGraphPlan.new(problem)
+        log { 'initial state and distance' }
+        state = problem.initial
         best = h.distance(state)
+        log { "distance: #{best}" }
         until best == 0 do
           state, best = breadth_first(problem, [state], best, h)
+          log { "#{best}: #{state}" }
           return {} unless state
         end
         return {
@@ -59,6 +64,12 @@ module Longjing
               end
             end
           end
+        end
+      end
+
+      def log(&block)
+        if $VERBOSE
+          puts yield
         end
       end
     end
