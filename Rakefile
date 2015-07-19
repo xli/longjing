@@ -68,7 +68,9 @@ task :benchmark do
   Benchmark.benchmark(Benchmark::CAPTION, label_len, Benchmark::FORMAT, ">total:", ">avg:") do |x|
     bms = problems.map do |prob|
       x.report(prob[:name].ljust(20)) do
-        Longjing.plan(prob[:prob])
+        10.times do
+          Longjing.plan(prob[:prob])
+        end
       end
     end
     [bms.reduce(:+), bms.reduce(:+)/bms.size]
