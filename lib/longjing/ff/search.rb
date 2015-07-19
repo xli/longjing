@@ -8,11 +8,15 @@ module Longjing
         handle_negative_goals(problem)
         log { 'initialize relaxed graph plan' }
         h = RelaxedGraphPlan.new(problem)
-        log { "initial:\n  #{problem.initial.raw.to_a.join("\n  ")}" }
-        log { "goal:\n  #{problem.to_h[:goal].to_a.map(&:inspect).join("\n  ")}" }
+        log { "initial:\n  #{problem.initial}" }
+        log { "goal:\n  #{problem.to_h[:goal]}" }
         state = problem.initial
-        best = distance(state, h)
+        best = if relaxed_solution = h.extract(state)
+                 distance(relaxed_solution)
+               end
+        return {} unless best
         log { "hill climbing starts" }
+        log { "initial cost:  #{best}" }
         until best == 0 do
           state, best = breadth_first(problem, [state], best, h)
           return {} unless state
@@ -27,23 +31,33 @@ module Longjing
         known = Set.new(frontier)
         until frontier.empty? do
           state = frontier.shift
-          log { "\n---\nworking on state: \n  #{state.raw.to_a.join("\n  ")}" }
+          log { "\n\nExploring: #{state}\n=======================" }
           problem.actions(state).each do |action|
-            log { "action: #{action.describe}" }
+            log { "\nAction: #{action.describe}\n-----------------------" }
             new_state = problem.result(action, state)
+            log { "Result:  #{new_state}" }
             if known.include?(new_state)
-              log {"  known status"}
+              log {"Known state"}
               next
             end
-            # ignore infinite heuristic state
-            if distance = distance(new_state, h)
-              if distance < best
-                log { "act: #{action.describe}" }
-                return [new_state, distance]
+
+            if solution = h.extract(new_state)
+              dist = distance(solution)
+              log {
+                buf = ""
+                solution.reverse.each_with_index do |a, i|
+                  buf << "#{i}. [#{a.map(&:name).join(", ")}]\n"
+                end
+                "Relaxed plan (cost: #{dist}):\n\n#{buf}"
+              }
+              if dist < best
+                return [new_state, dist]
               else
                 known << new_state
                 frontier << new_state
               end
+            else
+              # ignore infinite heuristic state
             end
           end
         end
@@ -51,17 +65,11 @@ module Longjing
       end
 
       private
-      def distance(state, graph)
-        log { "state:\n  #{state.raw.to_a.join("\n  ")}" }
-        if solution = graph.extract(state)
-          if solution.empty?
-            log { "found solution" }
-            0
-          else
-            solution.map(&:size).reduce(:+).tap do |r|
-              log { "relaxed plan: #{r}\n  #{solution.map{|a| a.map(&:name).inspect}.join("\n  ")}" }
-            end
-          end
+      def distance(solution)
+        if solution.empty?
+          0
+        else
+          solution.map(&:size).reduce(:+)
         end
       end
 

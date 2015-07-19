@@ -17,11 +17,7 @@ module Longjing
     alias :eql? :==
 
     def to_s
-      "#{@raw.inspect}, #{@path.map(&:describe).inspect}"
-    end
-
-    def inspect
-      "S[#{to_s}]"
+      "{#{@raw.to_a.join(" ")}}"
     end
   end
 end

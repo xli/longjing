@@ -24,12 +24,10 @@ class ProblemTest < Test::Unit::TestCase
     actions = prob.actions(state([[:have, :cake]]))
     assert_equal 1, actions.size
     assert_equal :eat, actions[0].name
-    assert_equal [:eat], actions[0].describe
 
     actions = prob.actions(state([[:eaten, :cake]]))
     assert_equal 1, actions.size
     assert_equal :bake, actions[0].name
-    assert_equal [:bake], actions[0].describe
   end
 
   def test_result
@@ -49,27 +47,27 @@ class ProblemTest < Test::Unit::TestCase
     assert_equal [[:on, :B, :C],
                   [:clear, :table],
                   [:-, :on, :B, :table],
-                  [:-, :clear, :C]], actions[0].effect.to_a
-    assert_equal [:move, :B, :table, :C], actions[0].describe
+                  [:-, :clear, :C]], actions[0].effect.to_a.map(&:raw)
+    assert_equal "move(B table C)", actions[0].describe
 
     assert_equal :move, actions[1].name
     assert_equal [[:on, :C, :B],
                   [:clear, :A],
                   [:-, :on, :C, :A],
-                  [:-, :clear, :B]], actions[1].effect.to_a
-    assert_equal [:move, :C, :A, :B], actions[1].describe
+                  [:-, :clear, :B]], actions[1].effect.to_a.map(&:raw)
+    assert_equal "move(C A B)", actions[1].describe
 
     assert_equal :moveToTable, actions[2].name
     assert_equal [[:on, :B, :table],
                   [:clear, :table],
-                  [:-, :on, :B, :table]], actions[2].effect.to_a
-    assert_equal [:moveToTable, :B, :table], actions[2].describe
+                  [:-, :on, :B, :table]], actions[2].effect.to_a.map(&:raw)
+    assert_equal "moveToTable(B table)", actions[2].describe
 
     assert_equal :moveToTable, actions[3].name
     assert_equal [[:on, :C, :table],
                   [:clear, :A],
-                  [:-, :on, :C, :A]], actions[3].effect.to_a
-    assert_equal [:moveToTable, :C, :A], actions[3].describe
+                  [:-, :on, :C, :A]], actions[3].effect.to_a.map(&:raw)
+    assert_equal "moveToTable(C A)", actions[3].describe
   end
 
   def test_result_with_parameters

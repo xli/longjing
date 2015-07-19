@@ -27,7 +27,7 @@ module Longjing
 
         action.merge(:precond => precond - exps,
                      :effect => substitute(action[:effect], variables),
-                     :describe => lambda {[action[:name], *arguments(variables)]})
+                     :describe => lambda { "#{action[:name]}(#{arguments(variables).join(" ")})" })
       end.compact
     end
 

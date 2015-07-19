@@ -27,11 +27,11 @@ module Longjing
       end
 
       def to_s
-        to_a.inspect
+        "[#{to_a.join(" ")}]"
       end
 
       def to_a
-        @pos.map(&:raw) + @neg.map(&:negative).map(&:raw)
+        @pos + @neg.map(&:negative)
       end
     end
 
@@ -90,11 +90,7 @@ module Longjing
     end
 
     def to_s
-      @raw.inspect
-    end
-
-    def inspect
-      "L[#{to_s}]"
+      "(#{@raw.join(" ")})"
     end
   end
 end

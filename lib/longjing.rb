@@ -29,9 +29,9 @@ module Longjing
     prob = Longjing.problem(pddl)
     result = Longjing.plan(prob)
     Longjing.validate!(prob, result[:solution])
-    puts "------------- solution ------------------"
+    puts "\nSolution\n============="
     result[:solution].each_with_index do |step, i|
-      puts "#{i}: #{step.inspect}"
+      puts "#{i}. #{step}"
     end
   end
 

@@ -271,7 +271,7 @@ class ParametersTest < Test::Unit::TestCase
     actions = params.propositionalize(action, objs)
     expected = [{
                   name: :fly,
-                  describe: [:fly, :sfo, :jfk],
+                  describe: "fly(sfo jfk)",
                   precond: [literal([:at, :sfo])],
                   effect: [
                     literal([:at, :jfk]),
@@ -280,7 +280,7 @@ class ParametersTest < Test::Unit::TestCase
                 },
                 {
                   name: :fly,
-                  describe: [:fly, :jfk, :sfo],
+                  describe: "fly(jfk sfo)",
                   precond: [literal([:at, :jfk])],
                   effect: [
                     literal([:at, :sfo]),
