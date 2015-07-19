@@ -103,8 +103,8 @@ module Longjing
           Array(layer2goals[i]).map do |g|
             next if marks[g].include?(i)
             next unless actions = @add2actions[g]
-            action = actions.select do |action|
-              action_layers[action.object_id] == i - 1
+            action = actions.select do |a|
+              action_layers[a.object_id] == i - 1
             end.min_by(&:difficulty)
             next if action.nil?
             action.pre.each do |lit|

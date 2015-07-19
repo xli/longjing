@@ -180,4 +180,4 @@ def _reduce_none(val, _values)
 end
 
   end   # class PDDL
-  end   # module Longjing
+end   # module Longjing
