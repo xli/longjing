@@ -38,7 +38,7 @@ module Longjing
 
     def result(action, state)
       raw = action.effect.apply(state.raw)
-      State.new(raw, state.path + [action.describe])
+      State.new(raw, state.path + [action])
     end
   end
 end

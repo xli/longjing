@@ -2,17 +2,20 @@ module Longjing
   module FF
     class RelaxedGraphPlan
       class Action
-        attr_reader :name, :add, :pre, :difficulty, :count_target
-        attr_accessor :counter, :difficulty
+        attr_accessor :counter, :difficulty, :count_target, :pre, :add
         def initialize(action)
-          @pre = action.precond.pos
-          @add = action.effect.pos
-          @name = action.describe
+          @action = action
+          @pre = @action.precond.pos
+          @add = @action.effect.pos
           @count_target = @pre.size
         end
 
+        def name
+          @action.describe
+        end
+
         def to_s
-          "Action[#{@name}]"
+          "Action[#{name}]"
         end
       end
 
@@ -112,7 +115,7 @@ module Longjing
               marks[lit] << i
               marks[lit] << i - 1
             end
-            action.name
+            action
           end.compact
         end
       end

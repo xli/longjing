@@ -13,7 +13,7 @@ module Longjing
           return {} unless state
         end
         return {
-          :solution => state.path,
+          :solution => state.path.map(&:describe),
           :state => state.raw
         }
       end

@@ -80,9 +80,9 @@ class FFTest < Test::Unit::TestCase
     prob = problem(cake_problem)
     graph = FF::RelaxedGraphPlan.new(prob)
     expected = [[[:eat]]]
-    assert_equal expected, graph.extract(prob.initial)
+    assert_equal expected, graph.extract(prob.initial).map{|a|a.map(&:name)}
     state = State.new(Literal.set([[:eaten, :cake]]))
-    assert_equal [[[:bake]]], graph.extract(state)
+    assert_equal [[[:bake]]], graph.extract(state).map{|a|a.map(&:name)}
   end
 
   def test_extract_solution_cargo_problem
@@ -100,7 +100,7 @@ class FFTest < Test::Unit::TestCase
         [:fly, :p2, :jfk, :sfo]
       ]
     ]
-    assert_equal expected, graph.extract(prob.initial)
+    assert_equal expected, graph.extract(prob.initial).map{|a|a.map(&:name)}
   end
 
   def test_distance

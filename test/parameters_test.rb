@@ -290,8 +290,15 @@ class ParametersTest < Test::Unit::TestCase
                ]
 
     assert_equal 2, actions.size
-    assert_equal expected[0], actions[0]
-    assert_equal expected[1], actions[1]
+    assert_equal expected[0][:name], actions[0][:name]
+    assert_equal expected[0][:describe], actions[0][:describe].call
+    assert_equal expected[0][:effect], actions[0][:effect]
+    assert_equal expected[0][:precond], actions[0][:precond]
+
+    assert_equal expected[1][:name], actions[1][:name]
+    assert_equal expected[1][:describe], actions[1][:describe].call
+    assert_equal expected[1][:effect], actions[1][:effect]
+    assert_equal expected[1][:precond], actions[1][:precond]
   end
 
   def literal(lit)
