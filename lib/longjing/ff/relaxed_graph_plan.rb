@@ -57,6 +57,7 @@ module Longjing
             end
           end
         end
+        goal = @goal.pos
         loop do
           scheduled_facts.each do |lit|
             fact_layers[lit] = step
@@ -70,6 +71,7 @@ module Longjing
               end
             end
           end
+          break if goal.all? {|lit| fact_layers.has_key?(lit)}
           scheduled_facts = Set.new
           scheduled_actions.each do |action|
             action_layers[action.object_id] = step
@@ -80,7 +82,6 @@ module Longjing
             end
           end
           scheduled_actions = []
-          break if @goal.pos.all? {|lit| fact_layers.has_key?(lit)}
           break if scheduled_facts.empty?
           step += 1
         end

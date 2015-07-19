@@ -36,9 +36,9 @@ class FFTest < Test::Unit::TestCase
     assert_equal 0, fact_layers[Literal.create([:eaten, :cake])]
     assert_equal 2, fact_layers.size
 
-    assert_equal 1, action_layers[graph.action_id([:eat])]
+    assert_equal nil, action_layers[graph.action_id([:eat])]
     assert_equal 0, action_layers[graph.action_id([:bake])]
-    assert_equal 2, action_layers.size
+    assert_equal 1, action_layers.size
   end
 
   def test_relaxed_layer_memberships_cargo_problem
