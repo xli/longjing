@@ -47,9 +47,9 @@ class Longjing::PDDL
         @tokens.push [:OP, m.strip.to_sym]
       when m = scanner.scan(/(\d+(\.\d+)?)\b/)
         @tokens.push [:NUMBER, m.to_f]
-      when m = scanner.scan(/:([\w\-_]*)\b/i)
+      when m = scanner.scan(/:([\w\-]*)\b/i)
         @tokens.push [:ID, m[1..-1].to_sym]
-      when m = scanner.scan(/([a-z?][\w\-_]*)\b/i)
+      when m = scanner.scan(/([a-z?][\w\-]*)\b/i)
         @tokens.push [:ID, m]
       else
         raise "unexpected characters: #{scanner.peek(5).inspect}"

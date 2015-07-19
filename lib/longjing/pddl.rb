@@ -36,8 +36,6 @@ module Longjing
           store[name] = to_hash(eval(list[1..-1])).merge(type.to_sym => name)
         when :domain
           self.domains[list[0]] || raise(UnknownDomain, list[0])
-        when :goal
-          { goal: expand_value(eval(list[0])) }
         when :action
           details = to_hash(eval(list[1..-1].each_slice(2).to_a))
           [:actions, details.merge(name: list[0])]
