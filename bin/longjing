@@ -6,8 +6,24 @@ $:.unshift(lib_path)
 require 'longjing'
 
 domain, problem = ARGV
+
 if ARGV.include?('-v')
   $VERBOSE = true
 end
 
-Longjing.pddl_plan(*(ARGV - ['-v']))
+prof = if ARGV.include?('-p')
+  require 'ruby-prof'
+  puts "Profile started"
+  RubyProf.start
+end
+
+Longjing.pddl_plan(*(ARGV - ['-v', '-p']))
+
+if prof
+  result = RubyProf.stop
+  puts "output: profile.html"
+  printer = RubyProf::GraphHtmlPrinter.new(result)
+  File.open("profile.html", 'w') do |f|
+    printer.print(f, {})
+  end
+end
