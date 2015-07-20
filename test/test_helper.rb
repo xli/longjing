@@ -11,9 +11,13 @@ end
 
 class Test::Unit::TestCase
   def read_pddl(name)
-    f = Dir[File.expand_path("../**/#{name}.pddl", __FILE__)].first
+    f = pddl_file(name)
     if File.exist?(f)
       File.read(f)
     end
+  end
+
+  def pddl_file(name)
+    Dir[File.expand_path("../**/#{name}.pddl", __FILE__)].first
   end
 end

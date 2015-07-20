@@ -105,6 +105,67 @@ class FFTest < Test::Unit::TestCase
     assert_nil graph.extract(state)
   end
 
+  def test_relaxed_plan_by_blocksworld_4op_problem
+    load(pddl_file('blocksworld-4ops'))
+    prob = problem(load(pddl_file('bw-rand-4')))
+    graph = FF::RelaxedGraphPlan.new(prob)
+
+    {
+      "((on b1 b2) (on b2 b4) (on-table b4) (clear b1) (holding b3))" => [
+        ["putdown(b3)"],
+        ["unstack(b1 b2)"],
+        ["unstack(b2 b4)"],
+        ["stack(b3 b4)", "pickup(b4)"],
+        ["stack(b4 b1)"]
+      ],
+      "((on b2 b4) (on-table b3) (on-table b4) (clear b3) (holding b1) (clear b2))" => [
+        ["stack(b1 b2)"],
+        ["unstack(b2 b4)", "pickup(b3)"],
+        ["stack(b3 b4)", "pickup(b4)"],
+        ["stack(b4 b1)"]
+      ],
+      "((on b2 b4) (on-table b3) (on-table b4) (clear b3) (clear b2) (clear b1) (arm-empty) (on-table b1))" => [
+        ["pickup(b1)", "unstack(b2 b4)", "pickup(b3)"],
+        ['stack(b1 b2)', 'stack(b3 b4)', 'pickup(b4)'],
+        ['stack(b4 b1)']
+      ],
+      "((on-table b3) (on-table b4) (clear b3) (clear b4) (on-table b2) (arm-empty) (clear b1) (on b1 b2))" => [
+        ['pickup(b3)', 'pickup(b4)'],
+        ['stack(b3 b4)', 'stack(b4 b1)']
+      ],
+      '((on-table b4) (clear b4) (on-table b2) (clear b1) (on b1 b2) (holding b3))' => [
+        ['stack(b3 b4)'],
+        ['pickup(b4)'],
+        ['stack(b4 b1)']
+      ],
+      '((on-table b4) (clear b4) (on-table b2) (on b1 b2) (arm-empty) (clear b3) (on b3 b1))' => [
+        ['unstack(b3 b1)', 'pickup(b4)'],
+        ['stack(b3 b4)', 'stack(b4 b1)']
+      ],
+      '((on-table b4) (clear b4) (on-table b2) (clear b3) (on-table b3) (holding b1) (clear b2))' => [
+        ['stack(b1 b2)'],
+        ['pickup(b3)', 'pickup(b4)'],
+        ['stack(b3 b4)', 'stack(b4 b1)']
+      ],
+      '((on-table b2) (on b1 b2) (clear b3) (on-table b3) (arm-empty) (clear b4) (on b4 b1))' => [
+        ['pickup(b3)'],
+        ['stack(b3 b4)']
+      ],
+      '((on-table b2) (on b1 b2) (clear b4) (on b4 b1) (clear b3) (arm-empty) (on-table b3))' => [
+        ['pickup(b3)'],
+        ['stack(b3 b4)']
+      ],
+      '((on-table b2) (on b1 b2) (on b4 b1) (arm-empty) (clear b3) (on b3 b4))' => []
+    }.each do |lits, expected_plan|
+      s = state(Literal.set(PDDL.new.parse(lits)))
+      plan = graph.extract(s).reverse.map {|s|s.map(&:name)}
+      expected_plan.each_with_index do |step, i|
+        assert_equal step, plan[i]
+      end
+      assert_equal expected_plan.size, plan.size
+    end
+  end
+
   def test_resolve_cake_problem
     prob = problem(cake_problem)
     search = FF::Search.new
