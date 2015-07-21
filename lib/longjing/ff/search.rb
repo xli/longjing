@@ -4,19 +4,25 @@ module Longjing
   module FF
     class Search
       def resolve(problem)
-        log { 'handle negative goals' }
+        log { 'Handle negative goals' }
         handle_negative_goals(problem)
-        log { 'initialize relaxed graph plan' }
+        log { 'Initialize relaxed graph plan' }
         h = RelaxedGraphPlan.new(problem)
-        log { "initial:\n  #{problem.initial}" }
-        log { "goal:\n  #{problem.to_h[:goal]}" }
+        log { "Initial:\n  #{problem.initial}" }
+        log { "Goal:\n  #{problem.to_h[:goal]}" }
+        hill_climbing(problem, h)
+      end
+
+      def hill_climbing(problem, h)
         state = problem.initial
         best = if relaxed_solution = h.extract(state)
                  distance(relaxed_solution)
                end
-        return {} unless best
+
         log { "hill climbing starts" }
         log { "initial cost:  #{best}" }
+
+        return {} unless best
         until best == 0 do
           state, best = breadth_first(problem, [state], best, h)
           return {} unless state
@@ -37,7 +43,7 @@ module Longjing
             new_state = problem.result(action, state)
             log { "Result:  #{new_state}" }
             if known.include?(new_state)
-              log {"Known state"}
+              log { "Known state" }
               next
             end
 
@@ -46,17 +52,20 @@ module Longjing
               log {
                 buf = ""
                 solution.reverse.each_with_index do |a, i|
-                  buf << "#{i}. [#{a.map(&:name).join(", ")}]\n"
+                  buf << "  #{i}. [#{a.map(&:name).join(", ")}]\n"
                 end
-                "Relaxed plan (cost: #{dist}):\n\n#{buf}"
+                "Relaxed plan (cost: #{dist}):\n#{buf}"
               }
               if dist < best
+                log { "Add to plan #{dist}, #{new_state.path.last.describe}" }
                 return [new_state, dist]
               else
+                log { "Add to frontier" }
                 known << new_state
                 frontier << new_state
               end
             else
+              log { "No relaxed solution" }
               # ignore infinite heuristic state
             end
           end
