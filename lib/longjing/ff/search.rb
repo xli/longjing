@@ -37,11 +37,10 @@ module Longjing
         known = Set.new(frontier)
         until frontier.empty? do
           state = frontier.shift
-          log { "\n\nExploring: #{state}\n=======================" }
+          log(:exploring, state)
           problem.actions(state).each do |action|
-            log { "\nAction: #{action.describe}\n-----------------------" }
             new_state = problem.result(action, state)
-            log { "Result:  #{new_state}" }
+            log(:action, action, new_state)
             if known.include?(new_state)
               log { "Known state" }
               next
@@ -49,24 +48,16 @@ module Longjing
 
             if solution = h.extract(new_state)
               dist = distance(solution)
-              log {
-                buf = ""
-                solution.reverse.each_with_index do |a, i|
-                  buf << "  #{i}. [#{a.map(&:name).join(", ")}]\n"
-                end
-                "Relaxed plan (cost: #{dist}):\n#{buf}"
-              }
+              log(:heuristic, solution, dist, best)
               if dist < best
-                log { "Add to plan #{dist}, #{new_state.path.last.describe}" }
                 return [new_state, dist]
               else
-                log { "Add to frontier" }
                 known << new_state
                 frontier << new_state
               end
             else
-              log { "No relaxed solution" }
               # ignore infinite heuristic state
+              log { "No relaxed solution" }
             end
           end
         end
@@ -104,8 +95,29 @@ module Longjing
         end
       end
 
-      def log(&block)
-        if $VERBOSE
+      def log(action=nil, *args, &block)
+        return unless $VERBOSE
+        case action
+        when :exploring
+          log {"\n\nExploring: #{args[0]}\n======================="}
+        when :action
+          log {"\nAction: #{args[0].describe}\n-----------------------"}
+          log {"=>  #{args[1]}"}
+        when :heuristic
+          solution, dist, best = args
+          log {
+            buf = ""
+            solution.reverse.each_with_index do |a, i|
+              buf << "  #{i}. [#{a.map(&:name).join(", ")}]\n"
+            end
+            "Relaxed plan (cost: #{dist}):\n#{buf}"
+          }
+          if dist < best
+            log { "Add to plan #{dist}, #{new_state.path.last.describe}" }
+          else
+            log { "Add to frontier" }
+          end
+        when NilClass
           puts yield
         end
       end
