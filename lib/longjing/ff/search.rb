@@ -48,7 +48,7 @@ module Longjing
 
             if solution = h.extract(new_state)
               dist = distance(solution)
-              log(:heuristic, solution, dist, best)
+              log(:heuristic, new_state, solution, dist, best)
               if dist < best
                 return [new_state, dist]
               else
@@ -104,11 +104,11 @@ module Longjing
           log {"\nAction: #{args[0].describe}\n-----------------------"}
           log {"=>  #{args[1]}"}
         when :heuristic
-          solution, dist, best = args
+          new_state, solution, dist, best = args
           log {
             buf = ""
-            solution.reverse.each_with_index do |a, i|
-              buf << "  #{i}. [#{a.map(&:name).join(", ")}]\n"
+            solution[0].reverse.each_with_index do |a, i|
+              buf << "  #{i}. [#{a.map(&:describe).join(", ")}]\n"
             end
             "Relaxed plan (cost: #{dist}):\n#{buf}"
           }
