@@ -80,9 +80,9 @@ class FFTest < Test::Unit::TestCase
     prob = problem(cake_problem)
     graph = FF::RelaxedGraphPlan.new(prob)
     expected = [['eat()']]
-    assert_equal expected, graph.extract(prob.initial).map{|a|a.map(&:name)}
+    assert_equal expected, graph.extract(prob.initial).map{|a|a.map(&:describe)}
     state = State.new(Literal.set([[:eaten, :cake]]))
-    assert_equal [['bake()']], graph.extract(state).map{|a|a.map(&:name)}
+    assert_equal [['bake()']], graph.extract(state).map{|a|a.map(&:describe)}
   end
 
   def test_extract_solution_cargo_problem
@@ -92,7 +92,7 @@ class FFTest < Test::Unit::TestCase
       ["unload(c1 p1 jfk)", "unload(c2 p2 sfo)"],
       ["load(c1 p1 sfo)", "fly(p1 sfo jfk)", "load(c2 p2 jfk)", "fly(p2 jfk sfo)"]
     ]
-    assert_equal expected, graph.extract(prob.initial).map{|a|a.map(&:name)}
+    assert_equal expected, graph.extract(prob.initial).map{|a|a.map(&:describe)}
   end
 
   def test_extract_when_there_is_no_solution
@@ -158,7 +158,7 @@ class FFTest < Test::Unit::TestCase
       '((on-table b2) (on b1 b2) (on b4 b1) (arm-empty) (clear b3) (on b3 b4))' => []
     }.each do |lits, expected_plan|
       s = state(Literal.set(PDDL.new.parse(lits)))
-      plan = graph.extract(s).reverse.map {|s|s.map(&:name)}
+      plan = graph.extract(s).reverse.map {|s|s.map(&:describe)}
       expected_plan.each_with_index do |step, i|
         assert_equal step, plan[i]
       end

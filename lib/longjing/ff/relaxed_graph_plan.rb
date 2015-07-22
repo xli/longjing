@@ -2,7 +2,9 @@ module Longjing
   module FF
     class RelaxedGraphPlan
       class Action
-        attr_accessor :counter, :difficulty, :count_target, :pre, :add
+        attr_accessor :counter, :difficulty
+        attr_reader :count_target, :pre, :add, :action
+
         def initialize(action)
           @action = action
           @pre = @action.precond.pos
@@ -10,12 +12,12 @@ module Longjing
           @count_target = @pre.size
         end
 
-        def name
+        def describe
           @action.describe
         end
 
         def to_s
-          "Action[#{name}]"
+          "Action[#{describe}]"
         end
       end
 
@@ -23,8 +25,8 @@ module Longjing
         build(problem.to_h)
       end
 
-      def action_id(name)
-        @actions.find{|a|a.name == name}.object_id
+      def action_id(describe)
+        @actions.find{|a|a.describe == describe}.object_id
       end
 
       def layers(state)
@@ -81,7 +83,7 @@ module Longjing
       def extract(state)
         fact_layers, action_layers = layers(state)
         marks = Hash.new{|h,k| h[k]=Set.new}
-        layer2goals = Hash.new{|h,k| h[k]=Set.new}
+        layer2goals = Hash.new{|h,k|h[k]=[]}
         @goal.pos.each do |lit|
           layer = fact_layers[lit]
           return nil if layer.nil?
@@ -89,26 +91,32 @@ module Longjing
         end
         # m = first layer contains all goals
         m = layer2goals.keys.max
-        (1..m).to_a.reverse.map do |i|
-          Array(layer2goals[i]).map do |g|
+        ret = []
+        (1..m).to_a.reverse.each do |i|
+          next unless layer2goals.has_key?(i)
+          subplan = []
+          layer2goals[i].each do |g|
             next if marks[g].include?(i)
             next unless actions = @add2actions[g]
             action = actions.select do |a|
               action_layers[a.object_id] == i - 1
             end.min_by(&:difficulty)
-            next if action.nil?
+
             action.pre.each do |lit|
               if fact_layers[lit] != 0 && !marks[lit].include?(i - 1)
                 layer2goals[fact_layers[lit]] << lit
               end
             end
             action.add.each do |lit|
-              marks[lit] << i
-              marks[lit] << i - 1
+              marks[lit] << i << (i - 1)
             end
-            action
-          end.compact
+            subplan << action
+          end
+          unless subplan.empty?
+            ret << subplan
+          end
         end
+        ret
       end
 
       private
