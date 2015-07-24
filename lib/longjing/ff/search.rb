@@ -3,6 +3,23 @@ require 'longjing/ff/relaxed_graph_plan'
 module Longjing
   module FF
     class Search
+      class GreedyState
+        attr_reader :state, :dist, :hash
+        def initialize(state, dist)
+          @state, @dist = state, dist
+          @hash = @state.hash
+        end
+
+        def ==(s)
+          s && @state == s.state
+        end
+        alias :eql? :==
+
+        def <=>(s)
+          @dist <=> s.dist
+        end
+      end
+
       def resolve(problem)
         log { 'Handle negative goals' }
         handle_negative_goals(problem)
@@ -10,7 +27,7 @@ module Longjing
         h = RelaxedGraphPlan.new(problem)
         log { "Initial:\n  #{problem.initial}" }
         log { "Goal:\n  #{problem.to_h[:goal]}" }
-        hill_climbing(problem, h)
+        hill_climbing(problem, h) || greedy_search(problem, h)
       end
 
       def hill_climbing(problem, h)
@@ -22,23 +39,28 @@ module Longjing
         log { "hill climbing starts" }
         log { "initial cost:  #{best}" }
 
-        return {} unless best
+        return unless best
+        helpful_actions = relaxed_solution[1]
         until best == 0 do
-          state, best = breadth_first(problem, [state], best, h)
-          return {} unless state
+          state, best, helpful_actions = breadth_first(problem,
+                                                       [state],
+                                                       best,
+                                                       h,
+                                                       helpful_actions)
+          return unless state
         end
-        return {
-          :solution => state.path.map(&:describe),
-          :state => state.raw
-        }
+        final_solution(state)
       end
 
-      def breadth_first(problem, frontier, best, h)
+      def breadth_first(problem, frontier, best, h, helpful_actions)
         known = Set.new(frontier)
+        pos_goals = Set.new(problem.goal.pos)
         until frontier.empty? do
           state = frontier.shift
           log(:exploring, state)
-          problem.actions(state).each do |action|
+          actions = helpful_actions || problem.actions(state)
+          helpful_actions = nil
+          actions.each do |action|
             new_state = problem.result(action, state)
             log(:action, action, new_state)
             if known.include?(new_state)
@@ -46,11 +68,12 @@ module Longjing
               next
             end
 
-            if solution = h.extract(new_state)
+            added_goals = Set.new(action.effect.pos.select {|lit| pos_goals.include?(lit)})
+            if solution = h.extract(new_state, added_goals)
               dist = distance(solution)
               log(:heuristic, new_state, solution, dist, best)
               if dist < best
-                return [new_state, dist]
+                return [new_state, dist, solution[1]]
               else
                 known << new_state
                 frontier << new_state
@@ -64,12 +87,60 @@ module Longjing
         return nil
       end
 
+      def greedy_search(problem, h)
+        initial = problem.initial
+        dist = if relaxed_solution = h.extract(initial)
+                 distance(relaxed_solution)
+               else
+                 Float::INFINITY
+               end
+        log { "greedy search starts" }
+        log { "initial cost:  #{dist}" }
+        if problem.goal?(initial)
+          return final_solution(initial)
+        end
+        frontier = SortedSet.new([GreedyState.new(initial, dist)])
+        known = Set.new([initial])
+        until frontier.empty? do
+          gs = frontier.first
+          frontier.delete(gs)
+          state = gs.state
+          log(:exploring, state, gs.dist)
+          problem.actions(state).each do |action|
+            new_state = problem.result(action, state)
+            log(:action, action, new_state)
+            if known.include?(new_state)
+              log { "Known state" }
+              next
+            end
+            if problem.goal?(new_state)
+              return final_solution(new_state)
+            end
+            state_dist = if relaxed_solution = h.extract(new_state)
+                           distance(relaxed_solution)
+                         else
+                           Float::INFINITY
+                         end
+            known << new_state
+            frontier << GreedyState.new(new_state, state_dist)
+          end
+        end
+        return {}
+      end
+
       private
+      def final_solution(state)
+        {
+          :solution => state.path.map(&:describe),
+          :state => state.raw
+        }
+      end
+
       def distance(solution)
-        if solution.empty?
+        if solution[0].empty?
           0
         else
-          solution.map(&:size).reduce(:+)
+          solution[0].map(&:size).reduce(:+)
         end
       end
 
@@ -99,7 +170,7 @@ module Longjing
         return unless $VERBOSE
         case action
         when :exploring
-          log {"\n\nExploring: #{args[0]}\n======================="}
+          log {"\n\nExploring: #{args.join(", ")}\n======================="}
         when :action
           log {"\nAction: #{args[0].describe}\n-----------------------"}
           log {"=>  #{args[1]}"}
@@ -110,10 +181,10 @@ module Longjing
             solution[0].reverse.each_with_index do |a, i|
               buf << "  #{i}. [#{a.map(&:describe).join(", ")}]\n"
             end
-            "Relaxed plan (cost: #{dist}):\n#{buf}"
+            "Relaxed plan (cost: #{dist}):\n#{buf}\n  helpful actions: #{solution[1] ? solution[1].map(&:describe).join(", ") : '[]'}"
           }
           if dist < best
-            log { "Add to plan #{dist}, #{new_state.path.last.describe}" }
+            log { "Add to plan #{new_state.path.last.describe}, cost: #{best}" }
           else
             log { "Add to frontier" }
           end

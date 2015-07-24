@@ -6,7 +6,7 @@ require 'longjing/action'
 
 module Longjing
   class Problem
-    attr_reader :initial
+    attr_reader :initial, :goal
 
     def initialize(data)
       @objects = data[:objects]

@@ -80,9 +80,9 @@ class FFTest < Test::Unit::TestCase
     prob = problem(cake_problem)
     graph = FF::RelaxedGraphPlan.new(prob)
     expected = [['eat()']]
-    assert_equal expected, graph.extract(prob.initial).map{|a|a.map(&:describe)}
+    assert_equal expected, graph.extract(prob.initial)[0].map{|a|a.map(&:describe)}
     state = State.new(Literal.set([[:eaten, :cake]]))
-    assert_equal [['bake()']], graph.extract(state).map{|a|a.map(&:describe)}
+    assert_equal [['bake()']], graph.extract(state)[0].map{|a|a.map(&:describe)}
   end
 
   def test_extract_solution_cargo_problem
@@ -92,7 +92,7 @@ class FFTest < Test::Unit::TestCase
       ["unload(c1 p1 jfk)", "unload(c2 p2 sfo)"],
       ["load(c1 p1 sfo)", "fly(p1 sfo jfk)", "load(c2 p2 jfk)", "fly(p2 jfk sfo)"]
     ]
-    assert_equal expected, graph.extract(prob.initial).map{|a|a.map(&:describe)}
+    assert_equal expected, graph.extract(prob.initial)[0].map{|a|a.map(&:describe)}
   end
 
   def test_extract_when_there_is_no_solution
@@ -158,12 +158,113 @@ class FFTest < Test::Unit::TestCase
       '((on-table b2) (on b1 b2) (on b4 b1) (arm-empty) (clear b3) (on b3 b4))' => []
     }.each do |lits, expected_plan|
       s = state(Literal.set(PDDL.new.parse(lits)))
-      plan = graph.extract(s).reverse.map {|s|s.map(&:describe)}
+      plan = graph.extract(s)[0].reverse.map {|s|s.map(&:describe)}
       expected_plan.each_with_index do |step, i|
         assert_equal step, plan[i]
       end
       assert_equal expected_plan.size, plan.size
     end
+  end
+
+  def test_extracting_helpful_actions
+    prob_desc = {
+      objects: [:a, :b, :c],
+      init: [
+        [:holding, :c],
+        [:on_table, :a],
+        [:on_table, :b],
+        [:clear, :a],
+        [:clear, :b]
+      ],
+      goal: [
+        [:on, :a, :b]
+      ],
+      actions: blocks_world_4ops_problem[:actions]
+    }
+    prob = problem(prob_desc)
+    graph = FF::RelaxedGraphPlan.new(prob)
+    solution = graph.extract(prob.initial)
+    assert_equal ['putdown(c)', 'stack(c a)', 'stack(c b)'],
+                 solution[1].map(&:describe)
+  end
+
+  def test_extracting_helpful_actions2
+    prob_desc = {
+      objects: [:a, :b, :c, :d, :e],
+      init: [
+        [:on_table, :a],
+        [:on_table, :b],
+        [:on_table, :c],
+        [:on_table, :d],
+        [:on_table, :e],
+        [:clear, :a],
+        [:clear, :b],
+        [:clear, :c],
+        [:clear, :d],
+        [:clear, :e],
+        [:arm_empty]
+      ],
+      goal: [
+        [:on, :a, :b]
+      ],
+      actions: blocks_world_4ops_problem[:actions]
+    }
+    prob = problem(prob_desc)
+    graph = FF::RelaxedGraphPlan.new(prob)
+    solution = graph.extract(prob.initial)
+    assert_equal ['pickup(a)'], solution[1].map(&:describe)
+  end
+
+  def test_added_goal_deletion
+    prob_desc = {
+      objects: [:a, :b, :c],
+      init: [
+        [:on, :c, :a],
+        [:on_table, :a],
+        [:on_table, :b],
+        [:clear, :c],
+        [:clear, :b],
+        [:arm_empty]
+      ],
+      goal: [
+        [:on, :a, :b],
+        [:on, :c, :a],
+        [:clear, :c]
+      ],
+      actions: blocks_world_4ops_problem[:actions]
+    }
+    prob = problem(prob_desc)
+    graph = FF::RelaxedGraphPlan.new(prob)
+    solution = graph.extract(prob.initial, [])
+    assert_equal([["stack(a b)"], ["pickup(a)"], ["unstack(c a)"]],
+                 solution[0].map{|r|r.map(&:describe)})
+    solution = graph.extract(prob.initial, [Literal.create([:on, :c, :a])])
+    assert_nil solution
+  end
+
+  def test_added_goal_deletion2
+    prob_desc = {
+      objects: [:a, :b, :c],
+      init: [
+        [:on, :a, :b],
+        [:on_table, :a],
+        [:on_table, :c],
+        [:clear, :c],
+        [:clear, :a],
+        [:arm_empty]
+      ],
+      goal: [
+        [:on, :a, :b],
+        [:on, :c, :a],
+        [:clear, :c]
+      ],
+      actions: blocks_world_4ops_problem[:actions]
+    }
+    prob = problem(prob_desc)
+    graph = FF::RelaxedGraphPlan.new(prob)
+    solution = graph.extract(prob.initial, [Literal.create([:on, :a, :b])])
+    assert_equal([['stack(c a)'], ['pickup(c)']],
+                 solution[0].map {|r|r.map(&:describe)})
   end
 
   def test_resolve_cake_problem
@@ -192,5 +293,14 @@ class FFTest < Test::Unit::TestCase
     search = FF::Search.new
     ret = search.resolve(prob)
     validate!(problem(test_problem), ret[:solution])
+  end
+
+  def test_greedy_search_blocks_world_4op_problem
+    prob = problem(blocks_world_4ops_problem)
+    graph = FF::RelaxedGraphPlan.new(prob)
+
+    search = FF::Search.new
+    ret = search.greedy_search(prob, graph)
+    validate!(problem(blocks_world_4ops_problem), ret[:solution])
   end
 end
