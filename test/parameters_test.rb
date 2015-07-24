@@ -199,6 +199,47 @@ class ParametersTest < Test::Unit::TestCase
     assert_equal [literal([:at, :p1, :jfk])], actions[1][:precond]
   end
 
+  def test_propositionalize_should_ignore_action_having_conflict_precond
+    action = {
+      name: :fly,
+      parameters: [[:p, :plane], [:from, :airport], [:to, :airport]],
+      precond: [[:at, :p, :from],
+                [:-, :at, :p, :to]],
+      effect: [
+        [:at, :p, :to],
+        [:-, :at, :p, :from]
+      ]
+    }
+    params = parameters(action[:parameters], [:plane, :airport, :cargo])
+    actions = params.propositionalize(action, [
+                                        [:p1, :plane],
+                                        [:sfo, :airport],
+                                        [:jfk, :airport]
+                                      ])
+    ret = actions.map{|a|a[:describe].call}
+    assert_equal ["fly(p1 sfo jfk)", "fly(p1 jfk sfo)"].sort, ret.sort
+  end
+
+  def test_propositionalize_should_ignore_action_having_conflict_effect
+    action = {
+      name: :fly,
+      parameters: [[:p, :plane], [:from, :airport], [:to, :airport]],
+      precond: [[:at, :p, :from]],
+      effect: [
+        [:at, :p, :to],
+        [:-, :at, :p, :from]
+      ]
+    }
+    params = parameters(action[:parameters], [:plane, :airport, :cargo])
+    actions = params.propositionalize(action, [
+                                        [:p1, :plane],
+                                        [:sfo, :airport],
+                                        [:jfk, :airport]
+                                      ])
+    ret = actions.map{|a|a[:describe].call}
+    assert_equal ["fly(p1 sfo jfk)", "fly(p1 jfk sfo)"].sort, ret.sort
+  end
+
   def test_names
     params = parameters([[:p, :plane], [:to, :airport]], [:plane, :airport])
     assert_equal [:p, :to], params.names

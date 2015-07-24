@@ -22,5 +22,5 @@
 
 --------
 * remove actions having conflict effects:
-** contain positive & negative of a fact
+** !contain positive & negative of a fact
 ** use predicates to validate?

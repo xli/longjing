@@ -42,7 +42,7 @@ class ProblemTest < Test::Unit::TestCase
     prob = Longjing.problem(blocks_world_problem)
     actions = prob.actions(prob.initial)
 
-    assert_equal 4, actions.size
+    assert_equal 3, actions.size
     assert_equal :move, actions[0].name
     assert_equal [[:on, :B, :C],
                   [:clear, :table],
@@ -58,16 +58,10 @@ class ProblemTest < Test::Unit::TestCase
     assert_equal "move(C A B)", actions[1].describe
 
     assert_equal :moveToTable, actions[2].name
-    assert_equal [[:on, :B, :table],
-                  [:clear, :table],
-                  [:-, :on, :B, :table]], actions[2].effect.to_a.map(&:raw)
-    assert_equal "moveToTable(B table)", actions[2].describe
-
-    assert_equal :moveToTable, actions[3].name
     assert_equal [[:on, :C, :table],
                   [:clear, :A],
-                  [:-, :on, :C, :A]], actions[3].effect.to_a.map(&:raw)
-    assert_equal "moveToTable(C A)", actions[3].describe
+                  [:-, :on, :C, :A]], actions[2].effect.to_a.map(&:raw)
+    assert_equal "moveToTable(C A)", actions[2].describe
   end
 
   def test_result_with_parameters
@@ -88,7 +82,9 @@ class ProblemTest < Test::Unit::TestCase
   def test_support_typing
     prob = Longjing.problem(cargo_transportation_problem)
     actions = prob.actions(prob.initial)
-    assert_equal 6, actions.size
+    assert_equal 4, actions.size
+    assert_equal ['load(c1 p1 sfo)', 'load(c2 p2 jfk)',
+                  'fly(p1 sfo jfk)', 'fly(p2 jfk sfo)'], actions.map(&:describe)
     result = prob.result(actions[0], prob.initial)
     expected = [[:at, :c2, :jfk],
                 [:at, :p1, :sfo],

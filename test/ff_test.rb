@@ -62,20 +62,16 @@ class FFTest < Test::Unit::TestCase
 
     action_layers = Hash[layered_actions.map{|a| [a.describe, a.layer]}]
     assert_equal 0, action_layers["load(c1 p1 sfo)"]
-    assert_equal 0, action_layers["fly(p1 sfo sfo)"]
     assert_equal 0, action_layers["fly(p1 sfo jfk)"]
     assert_equal 0, action_layers["load(c2 p2 jfk)"]
     assert_equal 0, action_layers["fly(p2 jfk sfo)"]
-    assert_equal 0, action_layers["fly(p2 jfk jfk)"]
     assert_equal 1, action_layers["unload(c1 p1 sfo)"]
     assert_equal 1, action_layers["load(c2 p1 jfk)"]
     assert_equal 1, action_layers["unload(c1 p1 jfk)"]
     assert_equal 1, action_layers["fly(p1 jfk sfo)"]
-    assert_equal 1, action_layers["fly(p1 jfk jfk)"]
     assert_equal 1, action_layers["unload(c2 p2 jfk)"]
     assert_equal 1, action_layers["load(c1 p2 sfo)"]
     assert_equal 1, action_layers["unload(c2 p2 sfo)"]
-    assert_equal 1, action_layers["fly(p2 sfo sfo)"]
     assert_equal 1, action_layers["fly(p2 sfo jfk)"]
   end
 

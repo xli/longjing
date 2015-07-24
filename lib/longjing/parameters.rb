@@ -21,12 +21,10 @@ module Longjing
 
     def propositionalize(action, objects)
       permutate(objects).map do |variables|
-        precond = substitute(action[:precond], variables)
-        exps = precond.select(&:exp?)
-        next unless exps.empty? || exps.all?(&:match?)
-
-        action.merge(:precond => precond - exps,
-                     :effect => substitute(action[:effect], variables),
+        next unless precond = substitute(action[:precond], variables)
+        next unless effect = substitute(action[:effect], variables)
+        action.merge(:precond => precond,
+                     :effect => effect,
                      :describe => lambda { "#{action[:name]}(#{arguments(variables).join(" ")})" })
       end.compact
     end
@@ -74,9 +72,20 @@ module Longjing
     end
 
     def substitute(literals, variables)
-      literals.map do |lit|
-        Literal.create(lit.map { |atom| variables[atom] || atom })
+      set = Set.new
+      ret = []
+      literals.each do |lit|
+        l = Literal.create(lit.map { |atom| variables[atom] || atom })
+        if l.exp?
+          return nil if !l.match?
+        else
+          pos = l.positive
+          return nil if set.include?(pos)
+          set << pos
+          ret << l
+        end
       end
+      ret
     end
 
     private
