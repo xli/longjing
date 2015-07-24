@@ -33,7 +33,7 @@ module Longjing
       def layers(state)
         fact_layers = {}
         step = 0
-        scheduled_facts = state.raw
+        scheduled_facts = state.raw.to_a
         scheduled_actions = []
         @actions.each do |action|
           action.counter = 0
@@ -49,6 +49,7 @@ module Longjing
         layered_actions = []
         loop do
           scheduled_facts.each do |lit|
+            next if fact_layers.has_key?(lit)
             fact_layers[lit] = step
             if actions = @pre2actions[lit]
               actions.each do |action|
@@ -62,7 +63,7 @@ module Longjing
             end
           end
           break if goal.all? {|lit| fact_layers.has_key?(lit)}
-          scheduled_facts = Set.new
+          scheduled_facts = []
           scheduled_actions.each do |action|
             layered_actions << action
             action.layer = step
