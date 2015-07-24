@@ -2,7 +2,7 @@ module Longjing
   module FF
     class RelaxedGraphPlan
       class Action
-        attr_accessor :counter, :difficulty
+        attr_accessor :counter, :difficulty, :layer
         attr_reader :count_target, :pre, :add, :action, :hash
 
         def initialize(action)
@@ -32,18 +32,18 @@ module Longjing
 
       def layers(state)
         fact_layers = {}
-        action_layers = {}
         step = 0
         scheduled_facts = state.raw
         scheduled_actions = []
         pre2actions = {}
         @actions.each do |action|
+          action.counter = 0
+          action.layer = Float::INFINITY
           if action.pre.empty?
             action.difficulty = 0
             scheduled_actions << action
           else
             action.difficulty = Float::INFINITY
-            action.counter = 0
             action.pre.each do |lit|
               pre2actions[lit] ||= []
               pre2actions[lit] << action
@@ -51,6 +51,7 @@ module Longjing
           end
         end
         goal = @goal.pos
+        layered_actions = []
         loop do
           scheduled_facts.each do |lit|
             fact_layers[lit] = step
@@ -67,7 +68,8 @@ module Longjing
           break if goal.all? {|lit| fact_layers.has_key?(lit)}
           scheduled_facts = Set.new
           scheduled_actions.each do |action|
-            action_layers[action] = step
+            layered_actions << action
+            action.layer = step
             action.add.each do |lit|
               unless fact_layers.has_key?(lit)
                 scheduled_facts << lit
@@ -78,11 +80,11 @@ module Longjing
           break if scheduled_facts.empty?
           step += 1
         end
-        [fact_layers, action_layers]
+        [fact_layers, layered_actions]
       end
 
       def extract(state, added_goals=[])
-        fact_layers, action_layers = layers(state)
+        fact_layers, layered_actions = layers(state)
 
         marks = Hash.new{|h,k| h[k]=Set.new}
         layer2facts = Hash.new{|h,k|h[k]=[]}
@@ -102,7 +104,7 @@ module Longjing
             next if marks[g].include?(i)
             next unless actions = @add2actions[g]
             action = actions.select do |a|
-              action_layers[a] == i - 1
+              a.layer == i - 1
             end.min_by(&:difficulty)
 
             action.pre.each do |lit|
@@ -133,7 +135,7 @@ module Longjing
           helpful_actions = Set.new
           layer2facts[1].each do |lit|
             @add2actions[lit].each do |action|
-              if action_layers[action] == 0
+              if action.layer == 0
                 helpful_actions << action.action
               end
             end
