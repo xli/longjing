@@ -35,7 +35,6 @@ module Longjing
         step = 0
         scheduled_facts = state.raw
         scheduled_actions = []
-        pre2actions = {}
         @actions.each do |action|
           action.counter = 0
           action.layer = Float::INFINITY
@@ -44,10 +43,6 @@ module Longjing
             scheduled_actions << action
           else
             action.difficulty = Float::INFINITY
-            action.pre.each do |lit|
-              pre2actions[lit] ||= []
-              pre2actions[lit] << action
-            end
           end
         end
         goal = @goal.pos
@@ -55,8 +50,9 @@ module Longjing
         loop do
           scheduled_facts.each do |lit|
             fact_layers[lit] = step
-            if actions = pre2actions[lit]
-              actions.delete_if do |action|
+            if actions = @pre2actions[lit]
+              actions.each do |action|
+                next if action.counter == action.count_target
                 action.counter += 1
                 if action.counter == action.count_target
                   action.difficulty = step
@@ -151,7 +147,12 @@ module Longjing
           Action.new(action)
         end
         @add2actions = {}
+        @pre2actions = {}
         @actions.each do |action|
+          action.pre.each do |lit|
+            @pre2actions[lit] ||= []
+            @pre2actions[lit] << action
+          end
           action.add.each do |lit|
             @add2actions[lit] ||= []
             @add2actions[lit] << action
