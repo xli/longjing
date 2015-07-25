@@ -1,25 +1,9 @@
+require 'longjing/ff/greedy_state'
 require 'longjing/ff/relaxed_graph_plan'
 
 module Longjing
   module FF
     class Search
-      class GreedyState
-        attr_reader :state, :dist, :hash
-        def initialize(state, dist)
-          @state, @dist = state, dist
-          @hash = @state.hash
-        end
-
-        def ==(s)
-          s && @state == s.state
-        end
-        alias :eql? :==
-
-        def <=>(s)
-          @dist <=> s.dist
-        end
-      end
-
       def resolve(problem)
         log { 'Handle negative goals' }
         handle_negative_goals(problem)
@@ -145,12 +129,11 @@ module Longjing
       end
 
       def handle_negative_goals(problem)
-        problem = problem.to_h
-        neg_goal = Hash[problem[:goal].neg.map {|lit| [lit.positive, lit.negative]}]
-        problem[:goal].pos.concat(neg_goal.values)
-        problem[:goal].neg.clear
+        neg_goal = Hash[problem.goal.neg.map {|lit| [lit.positive, lit.negative]}]
+        problem.goal.pos.concat(neg_goal.values)
+        problem.goal.neg.clear
 
-        problem[:actions].each do |action|
+        problem.ground_actions.each do |action|
           [action.precond, action.effect].each do |lits|
             lits.neg.delete_if do |lit|
               if neg = neg_goal[lit]

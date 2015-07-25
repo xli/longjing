@@ -39,19 +39,18 @@ module Longjing
     FF::Search.new.resolve(self.problem(problem))
   end
 
-  def validate!(problem, solution)
+  def validate!(prob, solution)
     raise "No solution" if solution.nil?
-    prob = problem.to_h
-    goal = prob[:goal]
-    actions = prob[:actions].inject({}) do |memo, action|
+    goal = prob.goal
+    actions = prob.ground_actions.inject({}) do |memo, action|
       memo[action.describe] = action
       memo
     end
-    state = prob[:initial]
+    state = prob.initial
     solution.each do |step|
       action = actions[step]
       if action.precond.match?(state.raw)
-        state = problem.result(action, state)
+        state = prob.result(action, state)
       else
         raise "Invalid solution, failed at step: #{step.inspect}"
       end

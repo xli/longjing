@@ -1,31 +1,16 @@
+require 'longjing/ff/connectivity_graph'
+
 module Longjing
   module FF
     class RelaxedGraphPlan
-      class Action
-        attr_accessor :counter, :difficulty, :layer
-        attr_reader :count_target, :pre, :add, :action, :hash
-
-        def initialize(action)
-          @action = action
-          @pre = @action.precond.pos
-          @add = @action.effect.pos
-          @count_target = @pre.size
-          @hash = self.object_id
-        end
-
-        def describe
-          @action.describe
-        end
-
-        def to_s
-          "Action[#{describe}]"
-        end
-      end
-
       attr_reader :actions
 
       def initialize(problem)
-        build(problem.to_h)
+        @goal = problem.goal
+        cg = ConnectivityGraph.new(problem)
+        @actions = cg.actions
+        @add2actions = cg.add2actions
+        @pre2actions = cg.pre2actions
       end
 
       def layers(state)
@@ -134,26 +119,6 @@ module Longjing
             end
           end
           [plan, helpful_actions.empty? ? nil : helpful_actions.to_a]
-        end
-      end
-
-      private
-      def build(problem)
-        @goal = problem[:goal]
-        @actions = problem[:actions].map do |action|
-          Action.new(action)
-        end
-        @add2actions = {}
-        @pre2actions = {}
-        @actions.each do |action|
-          action.pre.each do |lit|
-            @pre2actions[lit] ||= []
-            @pre2actions[lit] << action
-          end
-          action.add.each do |lit|
-            @add2actions[lit] ||= []
-            @add2actions[lit] << action
-          end
         end
       end
     end

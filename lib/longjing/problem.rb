@@ -6,11 +6,11 @@ require 'longjing/action'
 
 module Longjing
   class Problem
-    attr_reader :initial, :goal
+    attr_reader :initial, :goal, :ground_actions
 
     def initialize(data)
       @objects = data[:objects]
-      @actions = data[:actions].map do |action|
+      @ground_actions = data[:actions].map do |action|
         params = Parameters.new(action[:parameters], data[:types])
         params.propositionalize(action, @objects).map{|h| Action.new(h)}
       end.flatten
@@ -18,20 +18,12 @@ module Longjing
       @goal = Literal.list(data[:goal])
     end
 
-    def to_h
-      {
-        :goal => @goal,
-        :initial => @initial,
-        :actions => @actions
-      }
-    end
-
     def goal?(state)
       @goal.match?(state.raw)
     end
 
     def actions(state)
-      @actions.select do |action|
+      @ground_actions.select do |action|
         action.precond.match?(state.raw)
       end
     end
