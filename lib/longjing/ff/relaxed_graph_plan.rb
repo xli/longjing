@@ -22,12 +22,10 @@ module Longjing
         end
       end
 
+      attr_reader :actions
+
       def initialize(problem)
         build(problem.to_h)
-      end
-
-      def action_id(describe)
-        @actions.find{|a| a.describe == describe}
       end
 
       def layers(state)
@@ -46,7 +44,6 @@ module Longjing
           end
         end
         goal = @goal.pos
-        layered_actions = []
         loop do
           scheduled_facts.each do |lit|
             next if fact_layers.has_key?(lit)
@@ -65,7 +62,6 @@ module Longjing
           break if goal.all? {|lit| fact_layers.has_key?(lit)}
           scheduled_facts = []
           scheduled_actions.each do |action|
-            layered_actions << action
             action.layer = step
             action.add.each do |lit|
               unless fact_layers.has_key?(lit)
@@ -77,11 +73,11 @@ module Longjing
           break if scheduled_facts.empty?
           step += 1
         end
-        [fact_layers, layered_actions]
+        fact_layers
       end
 
       def extract(state, added_goals=[])
-        fact_layers, layered_actions = layers(state)
+        fact_layers = layers(state)
 
         marks = Hash.new{|h,k| h[k]=Set.new}
         layer2facts = Hash.new{|h,k|h[k]=[]}
