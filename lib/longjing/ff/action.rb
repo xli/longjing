@@ -2,12 +2,14 @@ module Longjing
   module FF
     class Action
       attr_accessor :counter, :difficulty, :layer
-      attr_reader :count_target, :pre, :add, :action, :hash
+      attr_reader :count_target, :action, :hash
+      attr_reader :pre, :add, :del
 
       def initialize(action)
         @action = action
         @pre = @action.precond.pos
         @add = @action.effect.pos
+        @del = @action.effect.neg
         @count_target = @pre.size
         @hash = self.object_id
       end

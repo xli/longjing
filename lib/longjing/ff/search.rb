@@ -1,5 +1,7 @@
 require 'longjing/ff/greedy_state'
+require 'longjing/ff/connectivity_graph'
 require 'longjing/ff/relaxed_graph_plan'
+require 'longjing/ff/ordering'
 
 module Longjing
   module FF
@@ -7,32 +9,41 @@ module Longjing
       def resolve(problem)
         log { 'Handle negative goals' }
         handle_negative_goals(problem)
+        log { 'Generate connectivity graph' }
+        cg = ConnectivityGraph.new(problem)
         log { 'Initialize relaxed graph plan' }
-        h = RelaxedGraphPlan.new(problem)
+        h = RelaxedGraphPlan.new(cg)
         log { "Initial:\n  #{problem.initial}" }
         log { "Goal:\n  #{problem.to_h[:goal]}" }
-        hill_climbing(problem, h) || greedy_search(problem, h)
+        hill_climbing(problem, h, cg) || greedy_search(problem, h)
       end
 
-      def hill_climbing(problem, h)
-        state = problem.initial
-        best = if relaxed_solution = h.extract(state)
-                 distance(relaxed_solution)
-               end
-
+      def hill_climbing(problem, h, cg)
         log { "hill climbing starts" }
-        log { "initial cost:  #{best}" }
+        o = Ordering.new(cg)
+        state = problem.initial
+        agenda = o.goal_agenda(problem)
+        problem.goal.pos.clear
+        agenda.each do |g|
+          problem.goal.pos << g
 
-        return unless best
-        helpful_actions = relaxed_solution[1]
-        until best == 0 do
-          state, best, helpful_actions = breadth_first(problem,
-                                                       [state],
-                                                       best,
-                                                       h,
-                                                       helpful_actions)
-          return unless state
+          best = if relaxed_solution = h.extract(problem.goal.pos, state)
+                   distance(relaxed_solution)
+                 end
+
+          log { "initial cost:  #{best}" }
+
+          return unless best
+          helpful_actions = relaxed_solution[1]
+
+          until best == 0 do
+            state, best, helpful_actions = breadth_first(problem, [state],
+                                                         best, h,
+                                                         helpful_actions)
+            return unless state
+          end
         end
+
         final_solution(state)
       end
 
@@ -53,7 +64,7 @@ module Longjing
             end
 
             added_goals = Set.new(action.effect.pos.select {|lit| pos_goals.include?(lit)})
-            if solution = h.extract(new_state, added_goals)
+            if solution = h.extract(problem.goal.pos, new_state, added_goals)
               dist = distance(solution)
               log(:heuristic, new_state, solution, dist, best)
               if dist < best
@@ -73,7 +84,7 @@ module Longjing
 
       def greedy_search(problem, h)
         initial = problem.initial
-        dist = if relaxed_solution = h.extract(initial)
+        dist = if relaxed_solution = h.extract(problem.goal.pos, initial)
                  distance(relaxed_solution)
                else
                  Float::INFINITY
@@ -100,7 +111,7 @@ module Longjing
             if problem.goal?(new_state)
               return final_solution(new_state)
             end
-            state_dist = if relaxed_solution = h.extract(new_state)
+            state_dist = if relaxed_solution = h.extract(problem.goal.pos, new_state)
                            distance(relaxed_solution)
                          else
                            Float::INFINITY

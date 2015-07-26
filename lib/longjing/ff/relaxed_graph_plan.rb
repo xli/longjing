@@ -1,19 +1,15 @@
-require 'longjing/ff/connectivity_graph'
-
 module Longjing
   module FF
     class RelaxedGraphPlan
       attr_reader :actions
 
-      def initialize(problem)
-        @goal = problem.goal
-        cg = ConnectivityGraph.new(problem)
+      def initialize(cg)
         @actions = cg.actions
         @add2actions = cg.add2actions
         @pre2actions = cg.pre2actions
       end
 
-      def layers(state)
+      def layers(goal, state)
         fact_layers = {}
         step = 0
         scheduled_facts = state.raw.to_a
@@ -28,7 +24,6 @@ module Longjing
             action.difficulty = Float::INFINITY
           end
         end
-        goal = @goal.pos
         loop do
           scheduled_facts.each do |lit|
             next if fact_layers.has_key?(lit)
@@ -61,12 +56,12 @@ module Longjing
         fact_layers
       end
 
-      def extract(state, added_goals=[])
-        fact_layers = layers(state)
+      def extract(goal, state, added_goals=[])
+        fact_layers = layers(goal, state)
 
         marks = Hash.new{|h,k| h[k]=Set.new}
         layer2facts = Hash.new{|h,k|h[k]=[]}
-        @goal.pos.each do |lit|
+        goal.each do |lit|
           layer = fact_layers[lit]
           return nil if layer.nil?
           layer2facts[layer] << lit

@@ -12,7 +12,7 @@
 ** !helper actions
 ** !added goal deletion
 ** !fallback to greedy best-first search when hill climbing search failed
-** goals agenda
+** !goals agenda
 * support pddl 3.1 strip pddl input and output
 ** !pddl file parser
 ** analysis support requirements, only do plan with supported problem
