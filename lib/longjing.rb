@@ -1,4 +1,5 @@
 require "longjing/version"
+require 'longjing/logging'
 require 'longjing/state'
 require 'longjing/parameters'
 require 'longjing/ff'
@@ -6,6 +7,8 @@ require 'longjing/problem'
 require 'longjing/pddl'
 
 module Longjing
+  extend Logging
+
   module_function
   def load(pddl)
     PDDL.parse(File.read(pddl))
@@ -29,10 +32,7 @@ module Longjing
     prob = Longjing.problem(pddl)
     result = Longjing.plan(prob)
     Longjing.validate!(prob, result[:solution])
-    puts "\nSolution\n============="
-    result[:solution].each_with_index do |step, i|
-      puts "#{i}. #{step}"
-    end
+    log(:solution, result[:solution])
   end
 
   def plan(problem)

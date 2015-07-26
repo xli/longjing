@@ -5,19 +5,23 @@ $:.unshift(lib_path)
 
 require 'longjing'
 
-domain, problem = ARGV
+input = ARGV.dup
 
-if ARGV.include?('-v')
-  $VERBOSE = true
-end
+Longjing.logger.level = if input.include?('-v')
+                          input.delete('-v')
+                          Logger::DEBUG
+                        else
+                          Logger::INFO
+                        end
 
-prof = if ARGV.include?('-p')
+prof = if input.include?('-p')
+  input.delete('-p')
   require 'ruby-prof'
-  puts "Profile started"
+  puts "Profile start"
   RubyProf.start
 end
 
-Longjing.pddl_plan(*(ARGV - ['-v', '-p']))
+Longjing.pddl_plan(*input)
 
 if prof
   result = RubyProf.stop

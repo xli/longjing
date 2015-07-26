@@ -2,49 +2,53 @@ require 'longjing/ff/greedy_state'
 require 'longjing/ff/connectivity_graph'
 require 'longjing/ff/relaxed_graph_plan'
 require 'longjing/ff/ordering'
+require 'longjing/logging'
 
 module Longjing
   module FF
     class Search
+      include Logging
+
       def resolve(problem)
+        log(:problem, problem)
         log { 'Handle negative goals' }
         handle_negative_goals(problem)
-        log { 'Generate connectivity graph' }
+        log { 'Initialize graphs' }
         cg = ConnectivityGraph.new(problem)
-        log { 'Initialize relaxed graph plan' }
         h = RelaxedGraphPlan.new(cg)
-        log { "Initial:\n  #{problem.initial}" }
-        log { "Goal:\n  #{problem.to_h[:goal]}" }
-        hill_climbing(problem, h, cg) || greedy_search(problem, h)
-      end
 
-      def hill_climbing(problem, h, cg)
-        log { "hill climbing starts" }
-        o = Ordering.new(cg)
+        log { "Build goal agenda" }
+        agenda = Ordering.new(cg).goal_agenda(problem)
+        log { "Goal agenda: #{agenda.join(" ")}" }
+        goal = problem.goal.pos
+        goal.clear
+
         state = problem.initial
-        agenda = o.goal_agenda(problem)
-        problem.goal.pos.clear
         agenda.each do |g|
-          problem.goal.pos << g
-
-          best = if relaxed_solution = h.extract(problem.goal.pos, state)
-                   distance(relaxed_solution)
-                 end
-
-          log { "initial cost:  #{best}" }
-
-          return unless best
-          helpful_actions = relaxed_solution[1]
-
-          until best == 0 do
-            state, best, helpful_actions = breadth_first(problem, [state],
-                                                         best, h,
-                                                         helpful_actions)
-            return unless state
+          goal << g
+          unless state = hill_climbing(problem, state, h)
+            return greedy_search(problem, h)
           end
         end
-
         final_solution(state)
+      end
+
+      def hill_climbing(problem, state, h)
+        log { "Hill climbing, goal: #{problem.goal}" }
+        best = if relaxed_solution = h.extract(problem.goal.pos, state)
+                 distance(relaxed_solution)
+               end
+        logger.debug { "Initial cost: #{best}" }
+        return unless best
+        helpful_actions = relaxed_solution[1]
+
+        until best == 0 do
+          state, best, helpful_actions = breadth_first(problem, [state],
+                                                       best, h,
+                                                       helpful_actions)
+          return unless state
+        end
+        state
       end
 
       def breadth_first(problem, frontier, best, h, helpful_actions)
@@ -59,7 +63,7 @@ module Longjing
             new_state = problem.result(action, state)
             log(:action, action, new_state)
             if known.include?(new_state)
-              log { "Known state" }
+              logger.debug { "Known state" }
               next
             end
 
@@ -75,7 +79,7 @@ module Longjing
               end
             else
               # ignore infinite heuristic state
-              log { "No relaxed solution" }
+              logger.debug { "No relaxed solution" }
             end
           end
         end
@@ -83,14 +87,14 @@ module Longjing
       end
 
       def greedy_search(problem, h)
+        log { "Greedy search" }
         initial = problem.initial
         dist = if relaxed_solution = h.extract(problem.goal.pos, initial)
                  distance(relaxed_solution)
                else
                  Float::INFINITY
                end
-        log { "greedy search starts" }
-        log { "initial cost:  #{dist}" }
+        logger.debug { "Initial cost:  #{dist}" }
         if problem.goal?(initial)
           return final_solution(initial)
         end
@@ -105,7 +109,7 @@ module Longjing
             new_state = problem.result(action, state)
             log(:action, action, new_state)
             if known.include?(new_state)
-              log { "Known state" }
+              logger.debug { "Known state" }
               next
             end
             if problem.goal?(new_state)
@@ -157,33 +161,6 @@ module Longjing
               end
             end
           end
-        end
-      end
-
-      def log(action=nil, *args, &block)
-        return unless $VERBOSE
-        case action
-        when :exploring
-          log {"\n\nExploring: #{args.join(", ")}\n======================="}
-        when :action
-          log {"\nAction: #{args[0].describe}\n-----------------------"}
-          log {"=>  #{args[1]}"}
-        when :heuristic
-          new_state, solution, dist, best = args
-          log {
-            buf = ""
-            solution[0].reverse.each_with_index do |a, i|
-              buf << "  #{i}. [#{a.map(&:describe).join(", ")}]\n"
-            end
-            "Relaxed plan (cost: #{dist}):\n#{buf}\n  helpful actions: #{solution[1] ? solution[1].map(&:describe).join(", ") : '[]'}"
-          }
-          if dist < best
-            log { "Add to plan #{new_state.path.last.describe}, cost: #{best}" }
-          else
-            log { "Add to frontier" }
-          end
-        when NilClass
-          puts yield
         end
       end
     end

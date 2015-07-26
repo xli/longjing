@@ -16,6 +16,8 @@ module Longjing
       end.flatten
       @initial = State.new(Literal.set(data[:init]))
       @goal = Literal.list(data[:goal])
+
+      @data = data
     end
 
     def goal?(state)
@@ -31,6 +33,26 @@ module Longjing
     def result(action, state)
       raw = action.effect.apply(state.raw)
       State.new(raw, state.path + [action])
+    end
+
+    def describe
+      %{Problem: #{@data[:problem] || 'Unknown'}
+Domain: #{@data[:domain] || 'Unknown'}
+Requirements: #{Array(@data[:requirements]).join(', ')}
+Types: #{@data[:types].inspect}
+Initial: #{@initial}
+Goal: #{@goal}
+#{stats}
+}
+    end
+
+    def stats
+%{
+# types: #{Array(@data[:types]).size}
+# predicates: #{@data[:predicates] ? @data[:predicates].size : 'Unknown'}
+# actions: #{@data[:actions].size}
+# ground actions: #{@ground_actions.size}
+# object: #{@objects.size}}
     end
   end
 end
