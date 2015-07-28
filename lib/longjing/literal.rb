@@ -36,7 +36,6 @@ module Longjing
     end
 
     class << self
-
       def create(raw)
         @literals ||= {}
         @literals[raw] ||= Literal.new(raw)
@@ -59,30 +58,28 @@ module Longjing
     def initialize(raw)
       @raw = raw
       @hash = raw.hash
+      @is_exp = inequal?
+      @is_neg = :-.object_id == @raw[0].object_id
     end
 
     def positive
-      @positive ||= negative? ? Literal.create(@raw[1..-1]) : self
+      @positive ||= @is_neg ? Literal.create(@raw[1..-1]) : self
     end
 
     def negative
-      @negative ||= negative? ? self : Literal.create([:-].concat(@raw))
+      @negative ||= @is_neg ? self : Literal.create([:-].concat(@raw))
     end
 
     def positive?
-      !negative?
+      !@is_neg
     end
 
     def negative?
-      @raw[0] == :-
+      @is_neg
     end
 
     def exp?
-      inequal?
-    end
-
-    def inequal?
-      @raw[0] == :!=
+      @is_exp
     end
 
     def match?
@@ -91,6 +88,11 @@ module Longjing
 
     def to_s
       "(#{@raw.join(" ")})"
+    end
+
+    private
+    def inequal?
+      :!=.object_id == @raw[0].object_id
     end
   end
 end
