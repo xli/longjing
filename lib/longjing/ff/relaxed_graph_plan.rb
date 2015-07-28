@@ -15,6 +15,10 @@ module Longjing
         scheduled_actions = []
         Literal.instances.each do |lit|
           lit.tmp = nil
+          lit.goal = false
+        end
+        goal.each do |lit|
+          lit.goal = true
         end
         @actions.each do |action|
           action.counter = 0
@@ -26,10 +30,14 @@ module Longjing
             action.difficulty = Float::INFINITY
           end
         end
+        goal_count = goal.size
         loop do
           scheduled_facts.each do |lit|
             next unless lit.tmp.nil?
             lit.tmp = step
+            if lit.goal
+              goal_count -= 1
+            end
             if actions = @pre2actions[lit]
               actions.each do |action|
                 next if action.counter == action.count_target
@@ -41,7 +49,7 @@ module Longjing
               end
             end
           end
-          break unless goal.any? {|lit| lit.tmp.nil?}
+          break if goal_count == 0
           scheduled_facts = []
           scheduled_actions.each do |action|
             action.layer = step

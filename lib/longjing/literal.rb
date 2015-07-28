@@ -61,7 +61,7 @@ module Longjing
     end
 
     attr_reader :raw, :hash
-    attr_accessor :tmp
+    attr_accessor :tmp, :goal
     def initialize(raw)
       @raw = raw
       @hash = raw.hash
