@@ -50,7 +50,7 @@ task :profile do
     end
   end
   puts "output: profile.html"
-  printer = RubyProf::GraphHtmlPrinter.new(result)
+  printer = RubyProf::CallStackPrinter.new(result)
   File.open("profile.html", 'w') do |f|
     printer.print(f, {})
   end
