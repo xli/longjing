@@ -10,6 +10,9 @@ input = ARGV.dup
 Longjing.logger.level = if input.include?('-v')
                           input.delete('-v')
                           Logger::DEBUG
+                        elsif input.include?('-s')
+                          input.delete('-s')
+                          Logger::WARN
                         else
                           Logger::INFO
                         end
