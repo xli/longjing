@@ -1,3 +1,4 @@
+require 'set'
 require 'longjing/ff/greedy_state'
 require 'longjing/ff/connectivity_graph'
 require 'longjing/ff/relaxed_graph_plan'

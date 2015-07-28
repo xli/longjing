@@ -12,7 +12,7 @@ module Longjing
       def layers(goal, state)
         fact_layers = {}
         step = 0
-        scheduled_facts = state.raw.to_a
+        scheduled_facts = state.raw.keys
         scheduled_actions = []
         @actions.each do |action|
           action.counter = 0

@@ -19,7 +19,7 @@ module Longjing
 
       def apply(set)
         ret = set.dup
-        @pos.each { |lit| ret << lit }
+        @pos.each { |lit| ret[lit] = true }
         @neg.each { |lit| ret.delete(lit) }
         ret
       end
@@ -40,7 +40,11 @@ module Longjing
       end
 
       def set(raw)
-        literals(raw).to_set
+        ret = {}
+        literals(raw).each do |l|
+          ret[l] = true
+        end
+        ret
       end
 
       def list(raws)

@@ -9,7 +9,7 @@ module Longjing
 
       def da(f)
         if actions = @add2actions[f]
-          set = actions[0].del.to_set
+          set = Hash[actions[0].del.map{|l|[l, true]}]
           actions[1..-1].inject(set) do |memo, action|
             n = {}
             action.del.each do |f|
@@ -52,7 +52,7 @@ module Longjing
         fixpoint = false
         while(!fixpoint) do
           fixpoint = true
-          facts.each do |f|
+          facts.keys.each do |f|
             if possibly_achievable_atoms(f, actions)
               facts.delete(f)
               actions = {}

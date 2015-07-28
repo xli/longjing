@@ -324,13 +324,13 @@ class FFTest < Test::Unit::TestCase
 
     prob = problem(prob_desc)
     o = ordering(prob)
-    fda = o.da(Literal.create([:on, :b1, :b2])).to_a
+    fda = o.da(Literal.create([:on, :b1, :b2])).keys
     assert_equal [Literal.create([:clear, :b2]),
                   Literal.create([:holding, :b1])], fda
 
     facts, actions = o.heuristic_fixpoint_reduction(Literal.create([:on, :b1, :b2]))
     assert_equal [Literal.create([:clear, :b2]),
-                  Literal.create([:holding, :b1])], facts.to_a
+                  Literal.create([:holding, :b1])], facts.keys
 
     assert o.heuristic_ordering(Literal.create([:on, :b1, :b2]),
                                 Literal.create([:on, :b3, :b4]))
