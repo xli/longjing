@@ -34,9 +34,13 @@ module Longjing
     end
 
     class << self
+      @@literals = {}
+      def instances
+        @@literals.values
+      end
+
       def create(raw)
-        @literals ||= {}
-        @literals[raw] ||= Literal.new(raw)
+        @@literals[raw] ||= Literal.new(raw)
       end
 
       def set(raw)
@@ -57,6 +61,7 @@ module Longjing
     end
 
     attr_reader :raw, :hash
+    attr_accessor :tmp
     def initialize(raw)
       @raw = raw
       @hash = raw.hash

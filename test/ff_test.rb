@@ -22,19 +22,19 @@ class FFTest < Test::Unit::TestCase
     #     eaten(cake)
     prob = problem(cake_problem)
     graph = relaxed_graph_plan(prob)
-    fact_layers = graph.layers(prob.goal.pos, prob.initial)
+    graph.layers(prob.goal.pos, prob.initial)
+    fact_layers = Hash[Literal.instances.map {|lit| [lit, lit.tmp]}]
     assert_equal 0, fact_layers[Literal.create([:have, :cake])]
     assert_equal 1, fact_layers[Literal.create([:eaten, :cake])]
-    assert_equal 2, fact_layers.size
 
     action_layers = Hash[graph.actions.map{|a| [a.describe, a.layer]}]
     assert_equal 0, action_layers["eat()"]
     assert_equal 0, action_layers["bake()"]
 
-    fact_layers, layered_actions = graph.layers(prob.goal.pos, State.new(Literal.set([[:eaten, :cake]])))
+    graph.layers(prob.goal.pos, State.new(Literal.set([[:eaten, :cake]])))
+    fact_layers = Hash[Literal.instances.map {|lit| [lit, lit.tmp]}]
     assert_equal 1, fact_layers[Literal.create([:have, :cake])]
     assert_equal 0, fact_layers[Literal.create([:eaten, :cake])]
-    assert_equal 2, fact_layers.size
 
     action_layers = Hash[graph.actions.map{|a| [a.describe, a.layer]}]
     assert_equal Float::INFINITY, action_layers["eat()"]
@@ -44,7 +44,8 @@ class FFTest < Test::Unit::TestCase
   def test_relaxed_layer_memberships_cargo_problem
     prob = problem(cargo_transportation_problem)
     graph = relaxed_graph_plan(prob)
-    fact_layers, layered_actions = graph.layers(prob.goal.pos, prob.initial)
+    graph.layers(prob.goal.pos, prob.initial)
+    fact_layers = Hash[Literal.instances.map {|lit| [lit, lit.tmp]}]
     assert_equal 0, fact_layers[Literal.create([:at, :c1, :sfo])]
     assert_equal 0, fact_layers[Literal.create([:at, :c2, :jfk])]
     assert_equal 0, fact_layers[Literal.create([:at, :p1, :sfo])]

@@ -10,10 +10,12 @@ module Longjing
       end
 
       def layers(goal, state)
-        fact_layers = {}
         step = 0
         scheduled_facts = state.raw.keys
         scheduled_actions = []
+        Literal.instances.each do |lit|
+          lit.tmp = nil
+        end
         @actions.each do |action|
           action.counter = 0
           action.layer = Float::INFINITY
@@ -26,8 +28,8 @@ module Longjing
         end
         loop do
           scheduled_facts.each do |lit|
-            next if fact_layers.has_key?(lit)
-            fact_layers[lit] = step
+            next unless lit.tmp.nil?
+            lit.tmp = step
             if actions = @pre2actions[lit]
               actions.each do |action|
                 next if action.counter == action.count_target
@@ -39,12 +41,12 @@ module Longjing
               end
             end
           end
-          break if goal.all? {|lit| fact_layers.has_key?(lit)}
+          break unless goal.any? {|lit| lit.tmp.nil?}
           scheduled_facts = []
           scheduled_actions.each do |action|
             action.layer = step
             action.add.each do |lit|
-              unless fact_layers.has_key?(lit)
+              if lit.tmp.nil?
                 scheduled_facts << lit
               end
             end
@@ -53,25 +55,24 @@ module Longjing
           break if scheduled_facts.empty?
           step += 1
         end
-        fact_layers
       end
 
       def extract(goal, state, added_goals=[])
-        fact_layers = layers(goal, state)
+        layers(goal, state)
+        goal_layers = goal.map(&:tmp)
+        return nil if goal_layers.any?(&:nil?)
+        # m = first layer contains all goals
+        m = goal_layers.max
 
         marks = Hash.new{|h,k| h[k]={}}
-        layer2facts = Hash.new{|h,k|h[k]=[]}
+        layer2facts = Array.new(m + 1) { [] }
+
         goal.each do |lit|
-          layer = fact_layers[lit]
-          return nil if layer.nil?
-          layer2facts[layer] << lit
+          layer2facts[lit.tmp] << lit
         end
 
-        # m = first layer contains all goals
-        m = layer2facts.keys.max
         plan = []
         (1..m).to_a.reverse.each do |i|
-          next unless layer2facts.has_key?(i)
           subplan = []
           layer2facts[i].each do |g|
             next if marks[g].include?(i)
@@ -81,8 +82,8 @@ module Longjing
             end.min_by(&:difficulty)
 
             action.pre.each do |lit|
-              if fact_layers[lit] != 0 && !marks[lit].include?(i - 1)
-                layer2facts[fact_layers[lit]] << lit
+              if lit.tmp != 0 && !marks[lit].include?(i - 1)
+                layer2facts[lit.tmp] << lit
               end
             end
             action.add.each do |lit|
