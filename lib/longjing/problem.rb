@@ -51,8 +51,9 @@ Goal: #{@goal}
 # types: #{Array(@data[:types]).size}
 # predicates: #{@data[:predicates] ? @data[:predicates].size : 'Unknown'}
 # actions: #{@data[:actions].size}
+# object: #{@objects.size}
 # ground actions: #{@ground_actions.size}
-# object: #{@objects.size}}
+}
     end
   end
 end

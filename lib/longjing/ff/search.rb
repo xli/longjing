@@ -47,6 +47,7 @@ module Longjing
                                                        best, h,
                                                        helpful_actions)
           return unless state
+          log { "----\nState: #{state}\nCost: #{best}\nPath: #{state.path.map(&:describe).join("\n")}" }
         end
         state
       end

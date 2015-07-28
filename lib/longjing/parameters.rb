@@ -34,6 +34,7 @@ module Longjing
     #    non-typing: [obj, ...]
     # return: {name => value}
     def permutate(arguments)
+      Longjing.logger.debug { "permutate arguments #{arguments.size} for params #{@params.inspect}" }
       arguments = arguments.map(&@typing)
       return [{}] if @params.empty?
       type_args = {}
@@ -45,7 +46,10 @@ module Longjing
       end
       return [{}] if type_args.values.reject(&:empty?).size < @obj_types.size
 
+      Longjing.logger.debug { "type arguments: #{type_args.map { |k,v| [k, v.size].join(':')}.join(', ')}" }
+
       total = @params.map{|_, t|type_args[t].size}.reduce(:*)
+      Longjing.logger.debug { "combinations: #{total}" }
       repeat = total
       ret = Array.new(total) {|i| []}
       @params.each do |param|
@@ -60,6 +64,7 @@ module Longjing
           end
         end
       end
+
       ret.map(&method(:pair))
     end
 
