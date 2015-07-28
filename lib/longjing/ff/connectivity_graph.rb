@@ -22,8 +22,8 @@ module Longjing
             @add2actions[lit] << action
           end
           action.del.each do |lit|
-            @del2actions[lit] ||= Set.new
-            @del2actions[lit] << action
+            @del2actions[lit] ||= {}
+            @del2actions[lit][action] = true
           end
         end
       end

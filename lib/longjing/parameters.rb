@@ -1,4 +1,3 @@
-require 'set'
 require 'longjing/literal'
 
 module Longjing
@@ -15,7 +14,7 @@ module Longjing
       @typing = types != nil ? lambda {|o| o} : lambda {|o| [o, nil]}
       @params = Array(params).map(&@typing)
       @names = @params.map {|p| p[0]}
-      @obj_types = Set.new(@params.map {|param| param[1]})
+      @obj_types = @params.map {|param| param[1]}.uniq
       @types = flatten(types)
     end
 
@@ -77,7 +76,7 @@ module Longjing
     end
 
     def substitute(literals, variables)
-      set = Set.new
+      known = {}
       ret = []
       literals.each do |lit|
         l = Literal.create(lit.map { |atom| variables[atom] || atom })
@@ -85,8 +84,8 @@ module Longjing
           return nil if !l.match?
         else
           pos = l.positive
-          return nil if set.include?(pos)
-          set << pos
+          return nil if known.has_key?(pos)
+          known[pos] = true
           ret << l
         end
       end

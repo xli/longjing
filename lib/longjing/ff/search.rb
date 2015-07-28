@@ -41,20 +41,21 @@ module Longjing
         logger.debug { "Initial cost: #{best}" }
         return unless best
         helpful_actions = relaxed_solution[1]
+        pos_goals = Hash[problem.goal.pos.map{|f| [f, true]}]
 
         until best == 0 do
           state, best, helpful_actions = breadth_first(problem, [state],
                                                        best, h,
-                                                       helpful_actions)
+                                                       helpful_actions,
+                                                       pos_goals)
           return unless state
           log { "----\nState: #{state}\nCost: #{best}\nPath: #{state.path.map(&:describe).join("\n")}" }
         end
         state
       end
 
-      def breadth_first(problem, frontier, best, h, helpful_actions)
-        known = Set.new(frontier)
-        pos_goals = Set.new(problem.goal.pos)
+      def breadth_first(problem, frontier, best, h, helpful_actions, goal)
+        known = Hash[frontier.map{|f| [f, true]}]
         until frontier.empty? do
           state = frontier.shift
           log(:exploring, state)
@@ -68,14 +69,14 @@ module Longjing
               next
             end
 
-            added_goals = Set.new(action.effect.pos.select {|lit| pos_goals.include?(lit)})
+            added_goals = Hash[action.effect.pos.select{|lit| goal.include?(lit)}.map{|k| [k, true]}]
             if solution = h.extract(problem.goal.pos, new_state, added_goals)
               dist = distance(solution)
               log(:heuristic, new_state, solution, dist, best)
               if dist < best
                 return [new_state, dist, solution[1]]
               else
-                known << new_state
+                known[new_state] = true
                 frontier << new_state
               end
             else
@@ -100,7 +101,7 @@ module Longjing
           return final_solution(initial)
         end
         frontier = SortedSet.new([GreedyState.new(initial, dist)])
-        known = Set.new([initial])
+        known = {initial => true}
         until frontier.empty? do
           gs = frontier.first
           frontier.delete(gs)
@@ -121,7 +122,7 @@ module Longjing
                          else
                            Float::INFINITY
                          end
-            known << new_state
+            known[new_state] = true
             frontier << GreedyState.new(new_state, state_dist)
           end
         end

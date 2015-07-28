@@ -59,7 +59,7 @@ module Longjing
       def extract(goal, state, added_goals=[])
         fact_layers = layers(goal, state)
 
-        marks = Hash.new{|h,k| h[k]=Set.new}
+        marks = Hash.new{|h,k| h[k]={}}
         layer2facts = Hash.new{|h,k|h[k]=[]}
         goal.each do |lit|
           layer = fact_layers[lit]
@@ -86,7 +86,8 @@ module Longjing
               end
             end
             action.add.each do |lit|
-              marks[lit] << i << (i - 1)
+              marks[lit][i] = true
+              marks[lit][i-1] = true
             end
             unless added_goals.empty?
               action.action.effect.neg.each do |lit|
@@ -105,15 +106,15 @@ module Longjing
         if plan.empty?
           [plan]
         else
-          helpful_actions = Set.new
+          helpful_actions = {}
           layer2facts[1].each do |lit|
             @add2actions[lit].each do |action|
               if action.layer == 0
-                helpful_actions << action.action
+                helpful_actions[action.action] = true
               end
             end
           end
-          [plan, helpful_actions.empty? ? nil : helpful_actions.to_a]
+          [plan, helpful_actions.empty? ? nil : helpful_actions.keys]
         end
       end
     end

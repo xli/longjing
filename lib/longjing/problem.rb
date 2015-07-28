@@ -1,4 +1,3 @@
-require 'set'
 require 'longjing/state'
 require 'longjing/parameters'
 require 'longjing/literal'

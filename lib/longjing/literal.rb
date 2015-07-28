@@ -1,5 +1,3 @@
-require 'set'
-
 module Longjing
   class Literal
     class List

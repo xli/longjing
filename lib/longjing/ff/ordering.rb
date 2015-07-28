@@ -11,16 +11,16 @@ module Longjing
         if actions = @add2actions[f]
           set = actions[0].del.to_set
           actions[1..-1].inject(set) do |memo, action|
-            n = Set.new
+            n = {}
             action.del.each do |f|
               if memo.include?(f)
-                n << f
+                n[f] = true
               end
             end
             n
           end
         else
-          Set.new
+          {}
         end
       end
 
@@ -41,12 +41,12 @@ module Longjing
 
       def heuristic_fixpoint_reduction(a)
         facts = da(a)
-        del_a_actions = @del2actions[a] || Set.new
-        actions = Set.new
+        del_a_actions = @del2actions[a] || {}
+        actions = {}
         @actions.each do |action|
           next if del_a_actions.include?(action)
           next if action.pre.any?{|l| facts.include?(l)}
-          actions << action
+          actions[action] = true
         end
 
         fixpoint = false
@@ -55,11 +55,11 @@ module Longjing
           facts.each do |f|
             if possibly_achievable_atoms(f, actions)
               facts.delete(f)
-              actions = Set.new
+              actions = {}
               @actions.each do |action|
                 next if del_a_actions.include?(action)
                 next if action.pre.any?{|l| facts.include?(l)}
-                actions << action
+                actions[action] = true
               end
               fixpoint = false
             end
