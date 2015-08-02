@@ -1,20 +1,29 @@
+require 'longjing/pddl/literal'
+
 module Longjing
+  module PDDL
+    class Literal
+      attr_accessor :layer, :goal
+    end
+  end
+
   module FF
     class RelaxedGraphPlan
-      attr_reader :actions
+      attr_reader :actions, :literals
 
       def initialize(cg)
         @actions = cg.actions
         @add2actions = cg.add2actions
         @pre2actions = cg.pre2actions
+        @literals = cg.literals
       end
 
       def layers(goal, state)
         step = 0
-        scheduled_facts = state.raw.keys
+        scheduled_facts = state.raw.to_a
         scheduled_actions = []
-        Literal.instances.each do |lit|
-          lit.tmp = nil
+        @literals.each do |lit|
+          lit.layer = nil
           lit.goal = false
         end
         goal.each do |lit|
@@ -33,8 +42,8 @@ module Longjing
         goal_count = goal.size
         loop do
           scheduled_facts.each do |lit|
-            next unless lit.tmp.nil?
-            lit.tmp = step
+            next unless lit.layer.nil?
+            lit.layer = step
             if lit.goal
               goal_count -= 1
             end
@@ -54,7 +63,7 @@ module Longjing
           scheduled_actions.each do |action|
             action.layer = step
             action.add.each do |lit|
-              if lit.tmp.nil?
+              if lit.layer.nil?
                 scheduled_facts << lit
               end
             end
@@ -67,7 +76,7 @@ module Longjing
 
       def extract(goal, state, added_goals=[])
         layers(goal, state)
-        goal_layers = goal.map(&:tmp)
+        goal_layers = goal.map(&:layer)
         return nil if goal_layers.any?(&:nil?)
         # m = first layer contains all goals
         m = goal_layers.max
@@ -76,7 +85,7 @@ module Longjing
         layer2facts = Array.new(m + 1) { [] }
 
         goal.each do |lit|
-          layer2facts[lit.tmp] << lit
+          layer2facts[lit.layer] << lit
         end
 
         plan = []
@@ -90,8 +99,8 @@ module Longjing
             end.min_by(&:difficulty)
 
             action.pre.each do |lit|
-              if lit.tmp != 0 && !marks[lit].include?(i - 1)
-                layer2facts[lit.tmp] << lit
+              if lit.layer != 0 && !marks[lit].include?(i - 1)
+                layer2facts[lit.layer] << lit
               end
             end
             action.add.each do |lit|
@@ -99,7 +108,7 @@ module Longjing
               marks[lit][i-1] = true
             end
             unless added_goals.empty?
-              action.action.effect.neg.each do |lit|
+              action.del.each do |lit|
                 if added_goals.include?(lit)
                   return nil
                 end

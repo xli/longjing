@@ -4,25 +4,17 @@ require 'longjing'
 
 def pddl_problems
   Dir['test/domains/*.pddl'].each do |f|
-    Longjing.load(f)
+    Longjing.pddl(f)
   end
 
   Dir['test/problems/*.pddl'].map do |f|
-    prob = Longjing.load(f)
+    prob = Longjing.pddl(f)
     {name: prob[:problem], prob: prob}
   end
 end
 
-def internal_format_problems
-  Dir['test/problems/*.rb'].map do |f|
-    require_relative f
-    name = File.basename(f).split('.').first
-    {name: name, prob: send(name + "_problem")}
-  end
-end
-
 def problems
-  internal_format_problems + pddl_problems
+  pddl_problems
 end
 
 Rake::TestTask.new do |t|
@@ -31,15 +23,7 @@ Rake::TestTask.new do |t|
   t.verbose = true
 end
 
-task :default => [:gen_problems_test, :test, :benchmark]
-
-task :gen_problems_test do
-  File.open('test/problems_test.rb', 'w') do |f|
-    erb = ERB.new(File.read('test/problems_test.rb.erb'))
-    problem_names = internal_format_problems.map{|p| p[:name]}
-    f.write(erb.result(binding))
-  end
-end
+task :default => [:test, :benchmark]
 
 task :profile do
   require 'ruby-prof'
@@ -67,7 +51,7 @@ task :benchmark do
   label_len = problems.map{|p|p[:name].length}.max + 1
   Benchmark.benchmark(Benchmark::CAPTION, label_len, Benchmark::FORMAT, ">total:", ">avg:") do |x|
     bms = problems.map do |prob|
-      x.report(prob[:name].ljust(20)) do
+      x.report(prob[:name].to_s.ljust(20)) do
         10.times do
           Longjing.plan(prob[:prob])
         end

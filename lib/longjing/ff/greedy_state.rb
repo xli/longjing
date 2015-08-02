@@ -8,7 +8,9 @@ module Longjing
       end
 
       def ==(s)
-        s && @state == s.state
+        return true if s.object_id == self.object_id
+        return false if s.nil?
+        @state == s.state
       end
       alias :eql? :==
 

@@ -10,29 +10,25 @@ module Longjing
   extend Logging
 
   module_function
-  def load(pddl)
-    PDDL.parse(File.read(pddl))
+  def pddl(file)
+    raise "File #{file.inspect} does not exist" unless File.exist?(file)
+    PDDL.parse(File.read(file))
   end
 
-  def state(raw, path=[])
-    State.new(raw, path)
+  def pddl_problem(domain_file, problem_file)
+    pddl(domain_file)
+    pddl(problem_file)
   end
 
-  def parameters(params, types=nil)
-    Parameters.new(params, types)
+  def pddl_plan(domain_file, problem_file)
+    prob = problem(pddl_problem(domain_file, problem_file))
+    result = plan(prob)
+    Longjing.validate!(prob, result[:solution])
+    log(:solution, result[:solution])
   end
 
   def problem(data)
     data.is_a?(Problem) ? data : Problem.new(data)
-  end
-
-  def pddl_plan(domain, problem)
-    PDDL.parse(File.read(domain))
-    pddl = PDDL.parse(File.read(problem))
-    prob = Longjing.problem(pddl)
-    result = Longjing.plan(prob)
-    Longjing.validate!(prob, result[:solution])
-    log(:solution, result[:solution])
   end
 
   def plan(problem)
@@ -43,19 +39,19 @@ module Longjing
     raise "No solution" if solution.nil?
     goal = prob.goal
     actions = prob.ground_actions.inject({}) do |memo, action|
-      memo[action.describe] = action
+      memo[action.signature] = action
       memo
     end
     state = prob.initial
     solution.each do |step|
       action = actions[step]
-      if action.precond.match?(state.raw)
+      if action.precond.applicable?(state.raw)
         state = prob.result(action, state)
       else
         raise "Invalid solution, failed at step: #{step.inspect}"
       end
     end
-    unless goal.match?(state)
+    unless goal.applicable?(state.raw)
       raise "Invalid solution, end with #{state}"
     end
   end

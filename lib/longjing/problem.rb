@@ -1,7 +1,6 @@
+require 'set'
 require 'longjing/state'
 require 'longjing/parameters'
-require 'longjing/literal'
-require 'longjing/action'
 
 module Longjing
   class Problem
@@ -10,22 +9,22 @@ module Longjing
     def initialize(data)
       @objects = data[:objects]
       @ground_actions = data[:actions].map do |action|
-        params = Parameters.new(action[:parameters], data[:types])
-        params.propositionalize(action, @objects).map{|h| Action.new(h)}
+        params = Parameters.new(action)
+        params.propositionalize(@objects)
       end.flatten
-      @initial = State.new(Literal.set(data[:init]))
-      @goal = Literal.list(data[:goal])
+      @initial = State.new(data[:init].to_set)
+      @goal = data[:goal]
 
       @data = data
     end
 
     def goal?(state)
-      @goal.match?(state.raw)
+      @goal.applicable?(state.raw)
     end
 
     def actions(state)
       @ground_actions.select do |action|
-        action.precond.match?(state.raw)
+        action.precond.applicable?(state.raw)
       end
     end
 
@@ -38,7 +37,7 @@ module Longjing
       %{Problem: #{@data[:problem] || 'Unknown'}
 Domain: #{@data[:domain] || 'Unknown'}
 Requirements: #{Array(@data[:requirements]).join(', ')}
-Types: #{@data[:types].inspect}
+Types: #{@data[:types]}
 Initial: #{@initial}
 Goal: #{@goal}
 #{stats}

@@ -75,7 +75,7 @@ module Longjing
 
       def goal_agenda(prob)
         g = Hash.new{|h,k|h[k]={}}
-        list = prob.goal.pos
+        list = prob.goal.to_a
         list.each do |a|
           list.each do |b|
             next if a == b

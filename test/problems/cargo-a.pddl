@@ -1,0 +1,8 @@
+(define (problem cargo-a) (:domain cargo)
+  (:objects c1 c2 - cargo p1 p2 - plane sfo jfk - airport)
+  (:init (at c1 sfo)
+         (at c2 jfk)
+         (at p1 sfo)
+         (at p2 jfk))
+  (:goal (and (at c1 jfk)
+              (at c2 sfo))))

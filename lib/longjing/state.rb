@@ -7,12 +7,10 @@ module Longjing
       @hash = @raw.hash
     end
 
-    def include?(lit)
-      raw.include?(lit)
-    end
-
     def ==(state)
-      state && @raw == state.raw
+      return true if state.object_id == self.object_id
+      return false if state.nil?
+      @raw == state.raw
     end
     alias :eql? :==
 

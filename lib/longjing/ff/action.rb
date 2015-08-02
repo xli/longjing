@@ -7,19 +7,32 @@ module Longjing
 
       def initialize(action)
         @action = action
-        @pre = @action.precond.pos
-        @add = @action.effect.pos
-        @del = @action.effect.neg
+        @pre = []
+        @add = []
+        @del = []
+        @action.precond.to_a.each do |lit|
+          if lit.neg_goal || !lit.is_a?(PDDL::Not)
+            @pre << lit
+          end
+        end
+
+        @action.effect.to_a.each do |lit|
+          if lit.neg_goal || !lit.is_a?(PDDL::Not)
+            @add << lit
+          else
+            @del << lit.literal
+          end
+        end
         @count_target = @pre.size
         @hash = self.object_id
       end
 
-      def describe
-        @action.describe
+      def signature
+        @action.signature
       end
 
       def to_s
-        "Action[#{describe}]"
+        "Action[#{signature}]"
       end
     end
   end

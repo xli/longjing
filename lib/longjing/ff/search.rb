@@ -6,14 +6,29 @@ require 'longjing/ff/ordering'
 require 'longjing/logging'
 
 module Longjing
+  module PDDL
+    class Literal
+      attr_accessor :neg_goal
+    end
+  end
+
   module FF
+    module NegGoal
+      def applicable?(set)
+        set.include?(self)
+      end
+      def apply(set)
+        set << self
+      end
+    end
+
     class Search
       include Logging
 
       def resolve(problem)
         log(:problem, problem)
         log { 'Handle negative goals' }
-        handle_negative_goals(problem)
+        reverse_negative_goals(problem.goal)
         log { 'Initialize graphs' }
         cg = ConnectivityGraph.new(problem)
         h = RelaxedGraphPlan.new(cg)
@@ -21,41 +36,40 @@ module Longjing
         log { "Build goal agenda" }
         agenda = Ordering.new(cg).goal_agenda(problem)
         log { "Goal agenda: #{agenda.join(" ")}" }
-        goal = problem.goal.pos
-        goal.clear
-
+        goal = []
         state = problem.initial
         agenda.each do |g|
           goal << g
-          unless state = hill_climbing(problem, state, h)
+          unless state = hill_climbing(problem, state, h, goal)
             return greedy_search(problem, h)
           end
         end
         final_solution(state)
       end
 
-      def hill_climbing(problem, state, h)
-        log { "Hill climbing, goal: #{problem.goal}" }
-        best = if relaxed_solution = h.extract(problem.goal.pos, state)
+      def hill_climbing(problem, state, h, goal_list)
+        log { "Hill climbing, goal: #{goal_list}" }
+        best = if relaxed_solution = h.extract(goal_list, state)
                  distance(relaxed_solution)
                end
         logger.debug { "Initial cost: #{best}" }
         return unless best
         helpful_actions = relaxed_solution[1]
-        pos_goals = Hash[problem.goal.pos.map{|f| [f, true]}]
-
+        goal_set = goal_list.to_set
         until best == 0 do
           state, best, helpful_actions = breadth_first(problem, [state],
                                                        best, h,
                                                        helpful_actions,
-                                                       pos_goals)
+                                                       goal_set,
+                                                       goal_list)
           return unless state
-          log { "----\nState: #{state}\nCost: #{best}\nPath: #{state.path.map(&:describe).join("\n")}" }
+          log { "----\nState: #{state}\nCost: #{best}\nPath: #{state.path.map(&:signature).join("\n")}" }
         end
         state
       end
 
-      def breadth_first(problem, frontier, best, h, helpful_actions, goal)
+      def breadth_first(problem, frontier, best, h, helpful_actions,
+                        goal_set, goal_list)
         known = Hash[frontier.map{|f| [f, true]}]
         until frontier.empty? do
           state = frontier.shift
@@ -70,8 +84,8 @@ module Longjing
               next
             end
 
-            added_goals = Hash[action.effect.pos.select{|lit| goal.include?(lit)}.map{|k| [k, true]}]
-            if solution = h.extract(problem.goal.pos, new_state, added_goals)
+            added_goals = Hash[action.effect.to_a.select{|lit| goal_set.include?(lit)}.map{|k| [k, true]}]
+            if solution = h.extract(goal_list, new_state, added_goals)
               dist = distance(solution)
               log(:heuristic, new_state, solution, dist, best)
               if dist < best
@@ -92,7 +106,8 @@ module Longjing
       def greedy_search(problem, h)
         log { "Greedy search" }
         initial = problem.initial
-        dist = if relaxed_solution = h.extract(problem.goal.pos, initial)
+        goal_list = problem.goal.to_a
+        dist = if relaxed_solution = h.extract(goal_list, initial)
                  distance(relaxed_solution)
                else
                  Float::INFINITY
@@ -118,7 +133,7 @@ module Longjing
             if problem.goal?(new_state)
               return final_solution(new_state)
             end
-            state_dist = if relaxed_solution = h.extract(problem.goal.pos, new_state)
+            state_dist = if relaxed_solution = h.extract(goal_list, new_state)
                            distance(relaxed_solution)
                          else
                            Float::INFINITY
@@ -133,7 +148,7 @@ module Longjing
       private
       def final_solution(state)
         {
-          :solution => state.path.map(&:describe),
+          :solution => state.path.map(&:signature),
           :state => state.raw
         }
       end
@@ -146,24 +161,15 @@ module Longjing
         end
       end
 
-      def handle_negative_goals(problem)
-        neg_goal = Hash[problem.goal.neg.map {|lit| [lit.positive, lit.negative]}]
-        problem.goal.pos.concat(neg_goal.values)
-        problem.goal.neg.clear
-
-        problem.ground_actions.each do |action|
-          [action.precond, action.effect].each do |lits|
-            lits.neg.delete_if do |lit|
-              if neg = neg_goal[lit]
-                lits.pos << neg
-              end
-            end
-            lits.pos.delete_if do |lit|
-              if neg = neg_goal[lit]
-                lits.neg << neg
-              end
-            end
+      def reverse_negative_goals(goal)
+        case goal
+        when PDDL::And
+          goal.literals.each do |lit|
+            reverse_negative_goals(lit)
           end
+        when PDDL::Not
+          goal.extend(NegGoal)
+          goal.neg_goal = true
         end
       end
     end

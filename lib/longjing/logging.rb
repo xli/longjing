@@ -16,19 +16,19 @@ module Longjing
         logger.debug { "\n\nExploring: #{args.join(", ")}\n=======================" }
       when :action
         action, result = args
-        logger.debug { "\nAction: #{action.describe}\n-----------------------" }
+        logger.debug { "\nAction: #{action.signature}\n-----------------------" }
         logger.debug { "=>  #{result}" }
       when :heuristic
         new_state, solution, dist, best = args
         logger.debug {
           buf = ""
           solution[0].reverse.each_with_index do |a, i|
-            buf << "  #{i}. [#{a.map(&:describe).join(", ")}]\n"
+            buf << "  #{i}. [#{a.map(&:signature).join(", ")}]\n"
           end
-          "Relaxed plan (cost: #{dist}):\n#{buf}\n  helpful actions: #{solution[1] ? solution[1].map(&:describe).join(", ") : '[]'}"
+          "Relaxed plan (cost: #{dist}):\n#{buf}\n  helpful actions: #{solution[1] ? solution[1].map(&:signature).join(", ") : '[]'}"
         }
         if dist < best
-          logger.debug { "Add to plan #{new_state.path.last.describe}, cost: #{dist}" }
+          logger.debug { "Add to plan #{new_state.path.last.signature}, cost: #{dist}" }
         else
           logger.debug { "Add to frontier" }
         end

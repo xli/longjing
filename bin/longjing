@@ -18,18 +18,19 @@ Longjing.logger.level = if input.include?('-v')
                         end
 
 prof = if input.include?('-p')
-  input.delete('-p')
-  require 'ruby-prof'
-  puts "Profile start"
-  RubyProf.start
-end
+         input.delete('-p')
+         require 'ruby-prof'
+         puts "Profile start"
+         RubyProf.start
+       end
 
 Longjing.pddl_plan(*input)
 
 if prof
   result = RubyProf.stop
   puts "output: profile.html"
-  printer = RubyProf::CallStackPrinter.new(result)
+  # printer = RubyProf::CallStackPrinter.new(result)
+  printer = RubyProf::GraphHtmlPrinter.new(result)
   File.open("profile.html", 'w') do |f|
     printer.print(f, {})
   end

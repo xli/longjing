@@ -3,7 +3,7 @@ require 'longjing/ff/action'
 module Longjing
   module FF
     class ConnectivityGraph
-      attr_reader :actions, :add2actions, :pre2actions, :del2actions
+      attr_reader :actions, :add2actions, :pre2actions, :del2actions, :literals
 
       def initialize(problem)
         @actions = problem.ground_actions.map do |action|
@@ -26,6 +26,9 @@ module Longjing
             @del2actions[lit][action] = true
           end
         end
+        @literals = (@pre2actions.keys +
+                     @add2actions.keys +
+                     @del2actions.keys).uniq
       end
     end
   end
