@@ -25,8 +25,19 @@ module Longjing
     class Search
       include Logging
 
-      def resolve(problem)
-        log(:problem, problem)
+      def propositionalize(problem)
+        actions = problem[:actions].map do |action|
+          params = Parameters.new(action)
+          params.propositionalize(problem[:objects])
+        end.flatten
+        Problem.new(actions, problem[:init], problem[:goal])
+      end
+
+      def resolve(pddl_problem)
+        log { 'FF search starts' }
+        log { 'Propositionalize actions' }
+        problem = propositionalize(pddl_problem)
+
         log { 'Handle negative goals' }
         reverse_negative_goals(problem.goal)
         log { 'Initialize graphs' }

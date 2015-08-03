@@ -6,21 +6,21 @@ class LongjingTest < Test::Unit::TestCase
     result = Longjing.plan(problem)
     assert result[:solution]
     assert result[:state]
-    Longjing.validate!(Longjing.problem(problem), result[:solution])
+    Longjing.validate!(problem, result[:solution])
   end
 
   def test_search_plan
     prob = blocksworld_rand_8_problem
     result = Longjing.plan(prob)
     assert !result[:solution].nil?
-    Longjing.validate!(Longjing.problem(prob), result[:solution])
+    Longjing.validate!(prob, result[:solution])
   end
 
   def test_search_plan_for_typing_problem
     prob = freecell_problem
     result = Longjing.plan(prob)
     assert !result[:solution].nil?
-    Longjing.validate!(Longjing.problem(prob), result[:solution])
+    Longjing.validate!(prob, result[:solution])
   end
 
   def test_unresolved_problem
@@ -60,7 +60,7 @@ PDDL
 PDDL
     result = Longjing.plan(problem)
     assert !result[:solution].nil?
-    Longjing.validate!(Longjing.problem(problem), result[:solution])
+    Longjing.validate!(problem, result[:solution])
   end
 
 end

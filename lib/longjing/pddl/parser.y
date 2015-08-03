@@ -26,12 +26,14 @@ class Longjing::PDDL::Parser
       })}
   | OPEN_BRACE DEFINE domain_name types predicates actions CLOSE_BRACE
     { val[2].merge!({
+        requirements: [:strips],
         types: val[3],
         predicates: val[4],
         actions: val[5]
       })}
   | OPEN_BRACE DEFINE domain_name predicates actions CLOSE_BRACE
     { val[2].merge!({
+        requirements: [:strips],
         predicates: val[3],
         actions: val[4]
       })}

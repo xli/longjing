@@ -293,24 +293,21 @@ PDDL
   end
 
   def test_resolve_cake_problem
-    prob = problem(cake_problem)
     search = FF::Search.new
-    ret = search.resolve(prob)
-    validate!(problem(cake_problem), ret[:solution])
+    ret = search.resolve(cake_problem)
+    validate!(cake_problem, ret[:solution])
   end
 
   def test_resolve_cargo_problem
-    prob = problem(cargo_transportation_problem)
     search = FF::Search.new
-    ret = search.resolve(prob)
-    validate!(problem(cargo_transportation_problem), ret[:solution])
+    ret = search.resolve(cargo_transportation_problem)
+    validate!(cargo_transportation_problem, ret[:solution])
   end
 
   def test_resolve_blocks_world_4op_problem
-    prob = problem(blocksworld_rand_8_problem)
     search = FF::Search.new
-    ret = search.resolve(prob)
-    validate!(problem(blocksworld_rand_8_problem), ret[:solution])
+    ret = search.resolve(blocksworld_rand_8_problem)
+    validate!(blocksworld_rand_8_problem, ret[:solution])
   end
 
   def test_greedy_search_blocks_world_4op_problem
@@ -319,7 +316,7 @@ PDDL
 
     search = FF::Search.new
     ret = search.greedy_search(prob, graph)
-    validate!(problem(blocksworld_rand_8_problem), ret[:solution])
+    validate!(blocksworld_rand_8_problem, ret[:solution])
   end
 
   def test_ordering
@@ -387,10 +384,22 @@ PDDL
   end
 
   def ordering(prob)
-    FF::Ordering.new(FF::ConnectivityGraph.new(prob))
+    FF::Ordering.new(cg(prob))
   end
 
   def relaxed_graph_plan(prob)
-    FF::RelaxedGraphPlan.new(FF::ConnectivityGraph.new(prob))
+    FF::RelaxedGraphPlan.new(cg(prob))
+  end
+
+  def cg(prob)
+    FF::ConnectivityGraph.new(prob)
+  end
+
+  def problem(prob)
+    propositionalize(prob)
+  end
+
+  def propositionalize(prob)
+    FF::Search.new.propositionalize(prob)
   end
 end

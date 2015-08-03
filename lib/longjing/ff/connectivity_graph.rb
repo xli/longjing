@@ -6,7 +6,7 @@ module Longjing
       attr_reader :actions, :add2actions, :pre2actions, :del2actions, :literals
 
       def initialize(problem)
-        @actions = problem.ground_actions.map do |action|
+        @actions = problem.all_actions.map do |action|
           Action.new(action)
         end
         @add2actions = {}

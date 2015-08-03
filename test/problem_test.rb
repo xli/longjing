@@ -1,8 +1,13 @@
 require "test_helper"
 
 class ProblemTest < Test::Unit::TestCase
+  include Longjing
+
   def test_interface
-    prob = Longjing.problem(cake_problem)
+    cake = cake_problem
+    prob = Problem.new(cake[:actions],
+                       cake[:init],
+                       cake[:goal])
     assert !prob.goal?(prob.initial)
 
     eat = prob.actions(prob.initial)[0]

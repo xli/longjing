@@ -21,37 +21,36 @@ module Longjing
   end
 
   def pddl_plan(domain_file, problem_file)
-    prob = problem(pddl_problem(domain_file, problem_file))
+    prob = pddl_problem(domain_file, problem_file)
     result = plan(prob)
     Longjing.validate!(prob, result[:solution])
     log(:solution, result[:solution])
   end
 
-  def problem(data)
-    data.is_a?(Problem) ? data : Problem.new(data)
-  end
-
   def plan(problem)
-    FF::Search.new.resolve(self.problem(problem))
+    log(:problem, problem)
+    FF::Search.new.resolve(problem)
   end
 
   def validate!(prob, solution)
     raise "No solution" if solution.nil?
-    goal = prob.goal
-    actions = prob.ground_actions.inject({}) do |memo, action|
-      memo[action.signature] = action
-      memo
-    end
-    state = prob.initial
+    goal = prob[:goal]
+    actions = Hash[prob[:actions].map{|o| [o.name, o]}]
+    objects = Hash[prob[:objects].map{|o| [o.name, o]}]
+    state = prob[:init].to_set
+
     solution.each do |step|
-      action = actions[step]
-      if action.precond.applicable?(state.raw)
-        state = prob.result(action, state)
+      name, *args = step.gsub(/[()]/, ' ').strip.split(' ').map(&:to_sym)
+      action = actions[name]
+      args = Array(args).map{|arg| objects[arg]}
+      action = action.substitute(args)
+      if action.precond.applicable?(state)
+        state = action.effect.apply(state)
       else
         raise "Invalid solution, failed at step: #{step.inspect}"
       end
     end
-    unless goal.applicable?(state.raw)
+    unless goal.applicable?(state)
       raise "Invalid solution, end with #{state}"
     end
   end

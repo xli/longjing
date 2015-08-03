@@ -39,7 +39,20 @@ module Longjing
         end
       when :problem
         prob = args[0]
-        logger.info { "\n#{prob.describe}" }
+        logger.info {
+          %{
+Problem: #{prob[:problem]}
+Domain: #{prob[:domain]}
+Requirements: #{prob[:requirements].join(', ')}
+Initial: #{prob[:init]}
+Goal: #{prob[:goal]}
+
+# types: #{Array(prob[:types]).size}
+# predicates: #{prob[:predicates].size}
+# actions: #{prob[:actions].size}
+# object: #{prob[:objects].size}
+}
+        }
       when NilClass
         logger.info(&block)
       end

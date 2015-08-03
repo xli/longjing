@@ -17,7 +17,7 @@ module Longjing
   module PDDL
     class Parser < Racc::Parser
 
-module_eval(<<'...end parser.y/module_eval...', 'parser.y', 208)
+module_eval(<<'...end parser.y/module_eval...', 'parser.y', 210)
   SUPPORTED_REQUIREMENTS = [:strips, :typing,
                             :'negative-preconditions',
                             :equality]
@@ -465,6 +465,7 @@ module_eval(<<'.,.,', 'parser.y', 21)
 module_eval(<<'.,.,', 'parser.y', 27)
   def _reduce_3(val, _values)
      val[2].merge!({
+        requirements: [:strips],
         types: val[3],
         predicates: val[4],
         actions: val[5]
@@ -472,160 +473,161 @@ module_eval(<<'.,.,', 'parser.y', 27)
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 33)
+module_eval(<<'.,.,', 'parser.y', 34)
   def _reduce_4(val, _values)
      val[2].merge!({
+        requirements: [:strips],
         predicates: val[3],
         actions: val[4]
       })
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 38)
+module_eval(<<'.,.,', 'parser.y', 40)
   def _reduce_5(val, _values)
      val[2].merge({ objects: val[3], init: val[4], goal: val[5] })
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 40)
+module_eval(<<'.,.,', 'parser.y', 42)
   def _reduce_6(val, _values)
      val[2].merge({ objects: [], init: val[3], goal: val[4] })
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 44)
+module_eval(<<'.,.,', 'parser.y', 46)
   def _reduce_7(val, _values)
      domain(val[2]) 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 49)
+module_eval(<<'.,.,', 'parser.y', 51)
   def _reduce_8(val, _values)
      problem(val[2], val[6]) 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 53)
+module_eval(<<'.,.,', 'parser.y', 55)
   def _reduce_9(val, _values)
      requirements(val[2]) 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 57)
+module_eval(<<'.,.,', 'parser.y', 59)
   def _reduce_10(val, _values)
      val[2] 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 61)
+module_eval(<<'.,.,', 'parser.y', 63)
   def _reduce_11(val, _values)
      val[2] 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 65)
+module_eval(<<'.,.,', 'parser.y', 67)
   def _reduce_12(val, _values)
      val[2] 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 66)
+module_eval(<<'.,.,', 'parser.y', 68)
   def _reduce_13(val, _values)
      [] 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 70)
+module_eval(<<'.,.,', 'parser.y', 72)
   def _reduce_14(val, _values)
      val[2] 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 71)
+module_eval(<<'.,.,', 'parser.y', 73)
   def _reduce_15(val, _values)
      [] 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 75)
+module_eval(<<'.,.,', 'parser.y', 77)
   def _reduce_16(val, _values)
      val[2] 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 79)
+module_eval(<<'.,.,', 'parser.y', 81)
   def _reduce_17(val, _values)
      [val[0]] + val[1] 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 80)
+module_eval(<<'.,.,', 'parser.y', 82)
   def _reduce_18(val, _values)
      [val[0]] 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 84)
+module_eval(<<'.,.,', 'parser.y', 86)
   def _reduce_19(val, _values)
      [val[0]] + val[1] 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 85)
+module_eval(<<'.,.,', 'parser.y', 87)
   def _reduce_20(val, _values)
      [val[0]] 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 90)
+module_eval(<<'.,.,', 'parser.y', 92)
   def _reduce_21(val, _values)
      @params = nil; Action.new(val[2], val[3], val[4], val[5]) 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 94)
+module_eval(<<'.,.,', 'parser.y', 96)
   def _reduce_22(val, _values)
      parameters(val[2]) 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 95)
+module_eval(<<'.,.,', 'parser.y', 97)
   def _reduce_23(val, _values)
      [] 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 99)
+module_eval(<<'.,.,', 'parser.y', 101)
   def _reduce_24(val, _values)
      val[1] 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 100)
+module_eval(<<'.,.,', 'parser.y', 102)
   def _reduce_25(val, _values)
      val[1] 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 104)
+module_eval(<<'.,.,', 'parser.y', 106)
   def _reduce_26(val, _values)
      val[1] 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 105)
+module_eval(<<'.,.,', 'parser.y', 107)
   def _reduce_27(val, _values)
      val[1] 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 109)
+module_eval(<<'.,.,', 'parser.y', 111)
   def _reduce_28(val, _values)
      [val[0]] + val[1] 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 110)
+module_eval(<<'.,.,', 'parser.y', 112)
   def _reduce_29(val, _values)
      [val[0]] 
   end
@@ -633,181 +635,181 @@ module_eval(<<'.,.,', 'parser.y', 110)
 
 # reduce 30 omitted
 
-module_eval(<<'.,.,', 'parser.y', 115)
+module_eval(<<'.,.,', 'parser.y', 117)
   def _reduce_31(val, _values)
      And.new(val[2]) 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 119)
+module_eval(<<'.,.,', 'parser.y', 121)
   def _reduce_32(val, _values)
      [val[0]] + val[1] 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 120)
+module_eval(<<'.,.,', 'parser.y', 122)
   def _reduce_33(val, _values)
      [val[0]] 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 124)
+module_eval(<<'.,.,', 'parser.y', 126)
   def _reduce_34(val, _values)
      Fact[@predicates.fetch(val[1]), val[2]] 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 125)
+module_eval(<<'.,.,', 'parser.y', 127)
   def _reduce_35(val, _values)
      Formula.new(@predicates.fetch(val[1]), val[2]) 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 126)
+module_eval(<<'.,.,', 'parser.y', 128)
   def _reduce_36(val, _values)
      Equal.new(*(val[2])) 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 127)
+module_eval(<<'.,.,', 'parser.y', 129)
   def _reduce_37(val, _values)
      EqualFormula.new(*(val[2])) 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 128)
+module_eval(<<'.,.,', 'parser.y', 130)
   def _reduce_38(val, _values)
      Fact[@predicates.fetch(val[1]), []] 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 129)
+module_eval(<<'.,.,', 'parser.y', 131)
   def _reduce_39(val, _values)
      Not[val[2]] 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 133)
+module_eval(<<'.,.,', 'parser.y', 135)
   def _reduce_40(val, _values)
      val[0] + val[1] 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 134)
+module_eval(<<'.,.,', 'parser.y', 136)
   def _reduce_41(val, _values)
      val[0] 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 135)
+module_eval(<<'.,.,', 'parser.y', 137)
   def _reduce_42(val, _values)
      val[0].map {|n| object(n)} 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 139)
+module_eval(<<'.,.,', 'parser.y', 141)
   def _reduce_43(val, _values)
      val[0].map {|n| object(n, val[1])} 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 143)
+module_eval(<<'.,.,', 'parser.y', 145)
   def _reduce_44(val, _values)
      val[0] + val[1] 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 144)
+module_eval(<<'.,.,', 'parser.y', 146)
   def _reduce_45(val, _values)
      val[0] 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 145)
+module_eval(<<'.,.,', 'parser.y', 147)
   def _reduce_46(val, _values)
      val[0].map {|t| type(t)} 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 149)
+module_eval(<<'.,.,', 'parser.y', 151)
   def _reduce_47(val, _values)
      val[0].map {|t| type(t, val[1])} 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 153)
+module_eval(<<'.,.,', 'parser.y', 155)
   def _reduce_48(val, _values)
      predicate(val[1], val[2]) 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 154)
+module_eval(<<'.,.,', 'parser.y', 156)
   def _reduce_49(val, _values)
      predicate(val[1]) 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 158)
+module_eval(<<'.,.,', 'parser.y', 160)
   def _reduce_50(val, _values)
      val[0] + val[1] 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 159)
+module_eval(<<'.,.,', 'parser.y', 161)
   def _reduce_51(val, _values)
      val[0] 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 160)
+module_eval(<<'.,.,', 'parser.y', 162)
   def _reduce_52(val, _values)
      val[0].map{|v| @params ? @params.fetch(v) : Var.new(v)} 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 164)
+module_eval(<<'.,.,', 'parser.y', 166)
   def _reduce_53(val, _values)
      val[0].map{|v| Var.new(v, val[1])} 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 168)
+module_eval(<<'.,.,', 'parser.y', 170)
   def _reduce_54(val, _values)
      [val[0]] + val[1] 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 169)
+module_eval(<<'.,.,', 'parser.y', 171)
   def _reduce_55(val, _values)
      [val[0]] 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 173)
+module_eval(<<'.,.,', 'parser.y', 175)
   def _reduce_56(val, _values)
      type(val[1]) 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 177)
+module_eval(<<'.,.,', 'parser.y', 179)
   def _reduce_57(val, _values)
      [val[0]] + val[1] 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 178)
+module_eval(<<'.,.,', 'parser.y', 180)
   def _reduce_58(val, _values)
      [val[0]] 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 182)
+module_eval(<<'.,.,', 'parser.y', 184)
   def _reduce_59(val, _values)
      [val[0]] + val[1] 
   end
 .,.,
 
-module_eval(<<'.,.,', 'parser.y', 183)
+module_eval(<<'.,.,', 'parser.y', 185)
   def _reduce_60(val, _values)
      [val[0]] 
   end
@@ -825,7 +827,7 @@ module_eval(<<'.,.,', 'parser.y', 183)
 
 # reduce 66 omitted
 
-module_eval(<<'.,.,', 'parser.y', 196)
+module_eval(<<'.,.,', 'parser.y', 198)
   def _reduce_67(val, _values)
      EMPTY 
   end
