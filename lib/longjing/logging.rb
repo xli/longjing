@@ -3,7 +3,12 @@ require 'logger'
 module Longjing
   module Logging
     def logger
-      @@logger ||= Logger.new(STDOUT).tap {|l| l.level = Logger::WARN}
+      @@logger ||= Logger.new(STDOUT).tap do |l|
+        l.level = Logger::WARN
+        l.formatter = proc do |severity, datetime, progname, msg|
+          "#{severity[0]} #{datetime}: #{msg}\n"
+        end
+      end
     end
 
     def logger=(l)
@@ -13,7 +18,8 @@ module Longjing
     def log(event=nil, *args, &block)
       case event
       when :exploring
-        logger.debug { "\n\nExploring: #{args.join(", ")}\n=======================" }
+        state = args[0]
+        logger.debug { "\n\nExploring: #{state}\n=======================" }
       when :action
         action, result = args
         logger.debug { "\nAction: #{action.signature}\n-----------------------" }
@@ -32,27 +38,25 @@ module Longjing
         else
           logger.debug { "Add to frontier" }
         end
-      when :solution
-        logger.info { "\nSolution\n=============" }
-        args[0].each_with_index do |step, i|
-          logger.info { "#{i}. #{step}" }
+      when :facts
+        args[0].each_slice(3) do |group|
+          logger.info { "  #{group.map(&:to_s).join(' ')}"}
         end
       when :problem
         prob = args[0]
         logger.info {
-          %{
-Problem: #{prob[:problem]}
-Domain: #{prob[:domain]}
-Requirements: #{prob[:requirements].join(', ')}
-Initial: #{prob[:init]}
-Goal: #{prob[:goal]}
-
-# types: #{Array(prob[:types]).size}
-# predicates: #{prob[:predicates].size}
-# actions: #{prob[:actions].size}
-# object: #{prob[:objects].size}
-}
+          "Problem: #{prob[:problem]}, domain: #{prob[:domain]}"
         }
+        logger.info {
+          "Requirements: #{prob[:requirements].join(', ')}"
+        }
+        log(:problem_stats, prob)
+      when :problem_stats
+        prob = args[0]
+        logger.info { "# types: #{Array(prob[:types]).size}" }
+        logger.info { "# predicates: #{prob[:predicates].size}" }
+        logger.info { "# object: #{prob[:objects].size}" }
+        logger.info { "# actions: #{prob[:actions].size}" }
       when NilClass
         logger.info(&block)
       end

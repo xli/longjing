@@ -11,15 +11,17 @@ module Longjing
           return solution(initial)
         end
         initial.cost = heuristic.call(initial)
-        logger.debug { "Initial cost:  #{initial.cost}" }
         frontier = SortedSet.new([initial])
         known = {initial => true}
         until frontier.empty? do
           state = frontier.first
+          statistics.expanded += 1
           frontier.delete(state)
-          log(:exploring, state, state.cost)
+          log(:exploring, state)
+          log_progress(state)
           problem.actions(state).each do |action|
             new_state = problem.result(action, state)
+            statistics.generated += 1
             log(:action, action, new_state)
             if known.include?(new_state)
               logger.debug { "Known state" }
@@ -29,6 +31,7 @@ module Longjing
               return solution(new_state)
             end
             new_state.cost = heuristic.call(new_state)
+            statistics.evaluated += 1
             known[new_state] = true
             frontier << new_state
           end

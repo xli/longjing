@@ -21,7 +21,6 @@ module Longjing
     prob = pddl_problem(domain_file, problem_file)
     plan(prob).tap do |solution|
       validate!(prob, solution)
-      log(:solution, solution)
     end
   end
 
