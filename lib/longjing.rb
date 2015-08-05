@@ -2,9 +2,9 @@ require "longjing/version"
 require 'longjing/logging'
 require 'longjing/state'
 require 'longjing/parameters'
-require 'longjing/ff'
 require 'longjing/problem'
 require 'longjing/pddl'
+require 'longjing/search'
 
 module Longjing
   extend Logging
@@ -23,13 +23,13 @@ module Longjing
   def pddl_plan(domain_file, problem_file)
     prob = pddl_problem(domain_file, problem_file)
     result = plan(prob)
-    Longjing.validate!(prob, result[:solution])
+    validate!(prob, result[:solution])
     log(:solution, result[:solution])
   end
 
-  def plan(problem)
+  def plan(problem, search_algorithm=:ff)
     log(:problem, problem)
-    FF::Search.new.resolve(problem)
+    Search.send(search_algorithm).new.search(problem)
   end
 
   def validate!(prob, solution)

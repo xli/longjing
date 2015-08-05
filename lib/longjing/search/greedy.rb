@@ -1,18 +1,16 @@
 require 'set'
-require 'longjing/logging'
+require 'longjing/search/base'
 
 module Longjing
   module Search
-    class Greedy
-      include Logging
-
-      def search(problem, h)
+    class Greedy < Base
+      def search(problem, heuristic)
         log { "Greedy search" }
         initial = problem.initial
         if problem.goal?(initial)
-          return final_solution(initial)
+          return solution(initial)
         end
-        initial.cost = h.call(initial)
+        initial.cost = heuristic.call(initial)
         logger.debug { "Initial cost:  #{initial.cost}" }
         frontier = SortedSet.new([initial])
         known = {initial => true}
@@ -28,21 +26,14 @@ module Longjing
               next
             end
             if problem.goal?(new_state)
-              return final_solution(new_state)
+              return solution(new_state)
             end
-            new_state.cost = h.call(new_state)
+            new_state.cost = heuristic.call(new_state)
             known[new_state] = true
             frontier << new_state
           end
         end
-        return {}
-      end
-
-      def final_solution(state)
-        {
-          :solution => state.path.map(&:signature),
-          :state => state.raw
-        }
+        no_solution
       end
     end
   end

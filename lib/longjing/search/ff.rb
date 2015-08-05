@@ -1,9 +1,8 @@
 require 'set'
+require 'longjing/search/base'
 require 'longjing/ff/connectivity_graph'
-require 'longjing/ff/relaxed_graph_plan'
 require 'longjing/ff/ordering'
-require 'longjing/logging'
-require 'longjing/search/greedy'
+require 'longjing/ff/relaxed_graph_plan'
 
 module Longjing
   module PDDL
@@ -12,40 +11,34 @@ module Longjing
     end
   end
 
-  module FF
-    module NegGoal
-      def applicable?(set)
-        set.include?(self)
-      end
-      def apply(set)
-        set << self
-      end
+  module Search
+    def self.ff
+      FF
     end
 
-    class Search
-      include Logging
-
-      def propositionalize(problem)
-        actions = problem[:actions].map do |action|
-          params = Parameters.new(action)
-          params.propositionalize(problem[:objects])
-        end.flatten
-        Problem.new(actions, problem[:init], problem[:goal])
+    class FF < Base
+      module NegGoal
+        def applicable?(set)
+          set.include?(self)
+        end
+        def apply(set)
+          set << self
+        end
       end
 
-      def resolve(pddl_problem)
+      def search(problem)
         log { 'FF search starts' }
         log { 'Propositionalize actions' }
-        problem = propositionalize(pddl_problem)
+        problem = propositionalize(problem)
 
         log { 'Handle negative goals' }
         reverse_negative_goals(problem.goal)
         log { 'Initialize graphs' }
-        cg = ConnectivityGraph.new(problem)
-        h = RelaxedGraphPlan.new(cg)
+        cg = Longjing::FF::ConnectivityGraph.new(problem)
+        h = Longjing::FF::RelaxedGraphPlan.new(cg)
 
         log { "Build goal agenda" }
-        agenda = Ordering.new(cg).goal_agenda(problem)
+        agenda = Longjing::FF::Ordering.new(cg).goal_agenda(problem)
         log { "Goal agenda: #{agenda.join(" ")}" }
         goal = []
         state = problem.initial
@@ -55,7 +48,7 @@ module Longjing
             return greedy_search(problem, h)
           end
         end
-        final_solution(state)
+        solution(state)
       end
 
       def hill_climbing(problem, state, h, goal_list)
@@ -117,24 +110,20 @@ module Longjing
       def greedy_search(problem, h)
         goal_list = problem.goal.to_a
         greedy = Longjing::Search::Greedy.new
-        greedy.search(problem, lambda do |state|
-                        if relaxed_solution = h.extract(goal_list, state)
-                          distance(relaxed_solution)
-                        else
-                          Float::INFINITY
-                        end
-                      end)
+        heuristic = lambda {|state| distance(h.extract(goal_list, state))}
+        greedy.search(problem, heuristic)
       end
 
-      private
-      def final_solution(state)
-        {
-          :solution => state.path.map(&:signature),
-          :state => state.raw
-        }
+      def propositionalize(problem)
+        actions = problem[:actions].map do |action|
+          params = Parameters.new(action)
+          params.propositionalize(problem[:objects])
+        end.flatten
+        Problem.new(actions, problem[:init], problem[:goal])
       end
 
       def distance(solution)
+        return nil if solution.nil?
         if solution[0].empty?
           0
         else

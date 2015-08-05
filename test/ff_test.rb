@@ -293,20 +293,20 @@ PDDL
   end
 
   def test_resolve_cake_problem
-    search = FF::Search.new
-    ret = search.resolve(cake_problem)
+    search = Search.ff.new
+    ret = search.search(cake_problem)
     validate!(cake_problem, ret[:solution])
   end
 
   def test_resolve_cargo_problem
-    search = FF::Search.new
-    ret = search.resolve(cargo_transportation_problem)
+    search = Search.ff.new
+    ret = search.search(cargo_transportation_problem)
     validate!(cargo_transportation_problem, ret[:solution])
   end
 
   def test_resolve_blocks_world_4op_problem
-    search = FF::Search.new
-    ret = search.resolve(blocksworld_rand_8_problem)
+    search = Search.ff.new
+    ret = search.search(blocksworld_rand_8_problem)
     validate!(blocksworld_rand_8_problem, ret[:solution])
   end
 
@@ -314,7 +314,7 @@ PDDL
     prob = problem(blocksworld_rand_8_problem)
     graph = relaxed_graph_plan(prob)
 
-    search = FF::Search.new
+    search = Search.ff.new
     ret = search.greedy_search(prob, graph)
     validate!(blocksworld_rand_8_problem, ret[:solution])
   end
@@ -400,6 +400,6 @@ PDDL
   end
 
   def propositionalize(prob)
-    FF::Search.new.propositionalize(prob)
+    Search.ff.new.propositionalize(prob)
   end
 end
