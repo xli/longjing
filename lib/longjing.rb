@@ -17,16 +17,16 @@ module Longjing
     pddl(problem_file)
   end
 
-  def pddl_plan(domain_file, problem_file)
+  def pddl_plan(domain_file, problem_file, search=:ff)
     prob = pddl_problem(domain_file, problem_file)
-    plan(prob).tap do |solution|
+    plan(prob, search).tap do |solution|
       validate!(prob, solution)
     end
   end
 
-  def plan(problem, search_algorithm=:ff)
+  def plan(problem, search=:ff)
     log(:problem, problem)
-    Search.send(search_algorithm).new.search(problem)
+    Search.send(search).new.search(problem)
   end
 
   def validate!(prob, solution)

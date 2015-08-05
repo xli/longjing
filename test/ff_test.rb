@@ -311,11 +311,8 @@ PDDL
   end
 
   def test_greedy_search_blocks_world_4op_problem
-    prob = problem(blocksworld_rand_8_problem)
-    graph = relaxed_graph_plan(prob)
-
-    search = Search.ff.new
-    ret = search.greedy_search(prob, graph)
+    search = Search.ff_greedy.new
+    ret = search.search(blocksworld_rand_8_problem)
     validate!(blocksworld_rand_8_problem, ret)
   end
 
