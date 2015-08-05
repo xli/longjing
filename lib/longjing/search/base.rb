@@ -6,14 +6,10 @@ module Longjing
       include Logging
 
       def solution(state)
-        {
-          :solution => state.path.map(&:signature),
-          :state => state.raw
-        }
+        state.path.map(&:signature)
       end
 
       def no_solution
-        {}
       end
     end
   end

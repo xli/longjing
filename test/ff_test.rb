@@ -295,19 +295,19 @@ PDDL
   def test_resolve_cake_problem
     search = Search.ff.new
     ret = search.search(cake_problem)
-    validate!(cake_problem, ret[:solution])
+    validate!(cake_problem, ret)
   end
 
   def test_resolve_cargo_problem
     search = Search.ff.new
     ret = search.search(cargo_transportation_problem)
-    validate!(cargo_transportation_problem, ret[:solution])
+    validate!(cargo_transportation_problem, ret)
   end
 
   def test_resolve_blocks_world_4op_problem
     search = Search.ff.new
     ret = search.search(blocksworld_rand_8_problem)
-    validate!(blocksworld_rand_8_problem, ret[:solution])
+    validate!(blocksworld_rand_8_problem, ret)
   end
 
   def test_greedy_search_blocks_world_4op_problem
@@ -316,7 +316,7 @@ PDDL
 
     search = Search.ff.new
     ret = search.greedy_search(prob, graph)
-    validate!(blocksworld_rand_8_problem, ret[:solution])
+    validate!(blocksworld_rand_8_problem, ret)
   end
 
   def test_ordering

@@ -19,9 +19,10 @@ module Longjing
 
   def pddl_plan(domain_file, problem_file)
     prob = pddl_problem(domain_file, problem_file)
-    result = plan(prob)
-    validate!(prob, result[:solution])
-    log(:solution, result[:solution])
+    plan(prob).tap do |solution|
+      validate!(prob, solution)
+      log(:solution, solution)
+    end
   end
 
   def plan(problem, search_algorithm=:ff)

@@ -4,23 +4,19 @@ class LongjingTest < Test::Unit::TestCase
   def test_resolved_problem
     problem = cake_problem
     result = Longjing.plan(problem)
-    assert result[:solution]
-    assert result[:state]
-    Longjing.validate!(problem, result[:solution])
+    Longjing.validate!(problem, result)
   end
 
   def test_search_plan
     prob = blocksworld_rand_8_problem
     result = Longjing.plan(prob)
-    assert !result[:solution].nil?
-    Longjing.validate!(prob, result[:solution])
+    Longjing.validate!(prob, result)
   end
 
   def test_search_plan_for_typing_problem
     prob = freecell_problem
     result = Longjing.plan(prob)
-    assert !result[:solution].nil?
-    Longjing.validate!(prob, result[:solution])
+    Longjing.validate!(prob, result)
   end
 
   def test_unresolved_problem
@@ -39,8 +35,7 @@ class LongjingTest < Test::Unit::TestCase
         (:goal (and (on b1 b2) (on b2 b3) (on b3 b1))))
 PDDL
     result = Longjing.plan(problem)
-    assert_nil result[:solution]
-    assert_nil result[:state]
+    assert_nil result
   end
 
   def test_negative_goal
@@ -59,8 +54,7 @@ PDDL
         (:goal (and (not (clear b6)) (not (on b5 b6)))))
 PDDL
     result = Longjing.plan(problem)
-    assert !result[:solution].nil?
-    Longjing.validate!(problem, result[:solution])
+    Longjing.validate!(problem, result)
   end
 
 end
