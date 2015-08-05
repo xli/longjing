@@ -3,7 +3,7 @@ require 'longjing/pddl/literal'
 module Longjing
   module PDDL
     class Literal
-      attr_accessor :layer, :goal
+      attr_accessor :ff_layer, :ff_goal
     end
   end
 
@@ -23,11 +23,11 @@ module Longjing
         scheduled_facts = state.raw.to_a
         scheduled_actions = []
         @literals.each do |lit|
-          lit.layer = nil
-          lit.goal = false
+          lit.ff_layer = nil
+          lit.ff_goal = false
         end
         goal.each do |lit|
-          lit.goal = true
+          lit.ff_goal = true
         end
         @actions.each do |action|
           action.counter = 0
@@ -42,9 +42,9 @@ module Longjing
         goal_count = goal.size
         loop do
           scheduled_facts.each do |lit|
-            next unless lit.layer.nil?
-            lit.layer = step
-            if lit.goal
+            next unless lit.ff_layer.nil?
+            lit.ff_layer = step
+            if lit.ff_goal
               goal_count -= 1
             end
             if actions = @pre2actions[lit]
@@ -63,7 +63,7 @@ module Longjing
           scheduled_actions.each do |action|
             action.layer = step
             action.add.each do |lit|
-              if lit.layer.nil?
+              if lit.ff_layer.nil?
                 scheduled_facts << lit
               end
             end
@@ -76,7 +76,7 @@ module Longjing
 
       def extract(goal, state, added_goals=[])
         layers(goal, state)
-        goal_layers = goal.map(&:layer)
+        goal_layers = goal.map(&:ff_layer)
         return nil if goal_layers.any?(&:nil?)
         # m = first layer contains all goals
         m = goal_layers.max
@@ -85,7 +85,7 @@ module Longjing
         layer2facts = Array.new(m + 1) { [] }
 
         goal.each do |lit|
-          layer2facts[lit.layer] << lit
+          layer2facts[lit.ff_layer] << lit
         end
 
         plan = []
@@ -99,8 +99,8 @@ module Longjing
             end.min_by(&:difficulty)
 
             action.pre.each do |lit|
-              if lit.layer != 0 && !marks[lit].include?(i - 1)
-                layer2facts[lit.layer] << lit
+              if lit.ff_layer != 0 && !marks[lit].include?(i - 1)
+                layer2facts[lit.ff_layer] << lit
               end
             end
             action.add.each do |lit|

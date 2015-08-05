@@ -1,5 +1,6 @@
 require 'set'
 require 'longjing/search/base'
+require 'longjing/ff/preprocess'
 require 'longjing/ff/connectivity_graph'
 require 'longjing/ff/ordering'
 require 'longjing/ff/relaxed_graph_plan'
@@ -7,7 +8,7 @@ require 'longjing/ff/relaxed_graph_plan'
 module Longjing
   module PDDL
     class Literal
-      attr_accessor :neg_goal
+      attr_accessor :ff_neg_goal
     end
   end
 
@@ -17,28 +18,18 @@ module Longjing
     end
 
     class FF < Base
-      module NegGoal
-        def applicable?(set)
-          set.include?(self)
-        end
-        def apply(set)
-          set << self
-        end
-      end
+      include Longjing::FF
 
       def search(problem)
         log { 'FF search starts' }
-        log { 'Propositionalize actions' }
-        problem = propositionalize(problem)
-
-        log { 'Handle negative goals' }
-        reverse_negative_goals(problem.goal)
+        log { 'Preprocess' }
+        problem = Preprocess.new.execute(problem)
         log { 'Initialize graphs' }
-        cg = Longjing::FF::ConnectivityGraph.new(problem)
-        h = Longjing::FF::RelaxedGraphPlan.new(cg)
+        cg = ConnectivityGraph.new(problem)
+        h = RelaxedGraphPlan.new(cg)
 
         log { "Build goal agenda" }
-        agenda = Longjing::FF::Ordering.new(cg).goal_agenda(problem)
+        agenda = Ordering.new(cg).goal_agenda(problem)
         log { "Goal agenda: #{agenda.join(" ")}" }
         goal = []
         state = problem.initial
@@ -114,32 +105,12 @@ module Longjing
         greedy.search(problem, heuristic)
       end
 
-      def propositionalize(problem)
-        actions = problem[:actions].map do |action|
-          params = Parameters.new(action)
-          params.propositionalize(problem[:objects])
-        end.flatten
-        Problem.new(actions, problem[:init], problem[:goal])
-      end
-
       def distance(solution)
         return nil if solution.nil?
         if solution[0].empty?
           0
         else
           solution[0].map(&:size).reduce(:+)
-        end
-      end
-
-      def reverse_negative_goals(goal)
-        case goal
-        when PDDL::And
-          goal.literals.each do |lit|
-            reverse_negative_goals(lit)
-          end
-        when PDDL::Not
-          goal.extend(NegGoal)
-          goal.neg_goal = true
         end
       end
     end

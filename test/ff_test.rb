@@ -372,7 +372,7 @@ PDDL
   end
 
   def literal_layers(graph)
-    Hash[graph.literals.map {|lit| [lit.to_s, lit.layer]}]
+    Hash[graph.literals.map {|lit| [lit.to_s, lit.ff_layer]}]
   end
 
   def action_layers(graph)
@@ -396,10 +396,6 @@ PDDL
   end
 
   def problem(prob)
-    propositionalize(prob)
-  end
-
-  def propositionalize(prob)
-    Search.ff.new.propositionalize(prob)
+    FF::Preprocess.new.execute(prob)
   end
 end

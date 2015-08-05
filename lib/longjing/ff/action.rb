@@ -11,13 +11,13 @@ module Longjing
         @add = []
         @del = []
         @action.precond.to_a.each do |lit|
-          if lit.neg_goal || !lit.is_a?(PDDL::Not)
+          if lit.ff_neg_goal || !lit.is_a?(PDDL::Not)
             @pre << lit
           end
         end
 
         @action.effect.to_a.each do |lit|
-          if lit.neg_goal || !lit.is_a?(PDDL::Not)
+          if lit.ff_neg_goal || !lit.is_a?(PDDL::Not)
             @add << lit
           else
             @del << lit.literal

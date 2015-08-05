@@ -1,8 +1,5 @@
 require "longjing/version"
 require 'longjing/logging'
-require 'longjing/state'
-require 'longjing/parameters'
-require 'longjing/problem'
 require 'longjing/pddl'
 require 'longjing/search'
 
