@@ -19,6 +19,7 @@
 ** test parser with more complex domains and problems
 ** typing support
 * full support of pddl 3.1
+** support definition of constant objects
 
 --------
 * remove actions having conflict effects:

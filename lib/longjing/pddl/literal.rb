@@ -188,15 +188,11 @@ module Longjing
       end
 
       def substitute(variables)
-        known = {}
         ret = []
         @literals.each do |lit|
-          return nil unless n = lit.substitute(variables)
+          n = lit.substitute(variables)
+          return nil if n.nil?
           next if n == EMPTY
-
-          pos = n.is_a?(Not) ? n.literal : n
-          return nil if known.has_key?(pos)
-          known[pos] = true
           ret << n
         end
         if ret.empty?

@@ -3,7 +3,7 @@ require "test_helper"
 class ParametersTest < Test::Unit::TestCase
   include Longjing
 
-  def test_permutate_two_params_without_typing
+  def test_two_params_combination_without_typing
     PDDL.parse(<<-PDDL)
 (define (domain cargo)
   (:predicates (at ?c ?a)
@@ -24,24 +24,20 @@ PDDL
     params = Parameters.new(fly)
     p1, p2, sfo, jfk = problem[:objects]
     variables = params.permutate(problem[:objects])
-    assert_equal 4*4, variables.size
+    assert_equal 4*3, variables.size
     expected = [
-      [p1,  p1],
       [p1,  p2],
       [p1,  sfo],
       [p1,  jfk],
       [p2,  p1],
-      [p2,  p2],
       [p2,  sfo],
       [p2,  jfk],
       [sfo, p1],
       [sfo, p2],
-      [sfo, sfo],
       [sfo, jfk],
       [jfk, p1],
       [jfk, p2],
-      [jfk, sfo],
-      [jfk, jfk]
+      [jfk, sfo]
     ]
     assert_equal expected, variables
   end
@@ -89,16 +85,12 @@ PDDL
     p1, p2, sfo, jfk = problem[:objects]
     variables = params.permutate(problem[:objects])
 
-    assert_equal 2*2*2, variables.size
+    assert_equal 2*2, variables.size
     expected = [
-      [p1, sfo, sfo],
       [p1, sfo, jfk],
       [p1, jfk, sfo],
-      [p1, jfk, jfk],
-      [p2, sfo, sfo],
       [p2, sfo, jfk],
-      [p2, jfk, sfo],
-      [p2, jfk, jfk]
+      [p2, jfk, sfo]
     ]
 
     assert_equal expected, variables
@@ -127,79 +119,55 @@ PDDL
     p1, p2, sfo, jfk, kfc, c1, c2, c3, c4 = problem[:objects]
     variables = params.permutate(problem[:objects])
 
-    assert_equal 2*4*3*3, variables.size
-    expected = [[p1, c1, sfo, sfo],
-                [p1, c1, sfo, jfk],
+    assert_equal 48, variables.size
+    expected = [[p1, c1, sfo, jfk],
                 [p1, c1, sfo, kfc],
                 [p1, c1, jfk, sfo],
-                [p1, c1, jfk, jfk],
                 [p1, c1, jfk, kfc],
                 [p1, c1, kfc, sfo],
                 [p1, c1, kfc, jfk],
-                [p1, c1, kfc, kfc],
-                [p1, c2, sfo, sfo],
                 [p1, c2, sfo, jfk],
                 [p1, c2, sfo, kfc],
                 [p1, c2, jfk, sfo],
-                [p1, c2, jfk, jfk],
                 [p1, c2, jfk, kfc],
                 [p1, c2, kfc, sfo],
                 [p1, c2, kfc, jfk],
-                [p1, c2, kfc, kfc],
-                [p1, c3, sfo, sfo],
                 [p1, c3, sfo, jfk],
                 [p1, c3, sfo, kfc],
                 [p1, c3, jfk, sfo],
-                [p1, c3, jfk, jfk],
                 [p1, c3, jfk, kfc],
                 [p1, c3, kfc, sfo],
                 [p1, c3, kfc, jfk],
-                [p1, c3, kfc, kfc],
-                [p1, c4, sfo, sfo],
                 [p1, c4, sfo, jfk],
                 [p1, c4, sfo, kfc],
                 [p1, c4, jfk, sfo],
-                [p1, c4, jfk, jfk],
                 [p1, c4, jfk, kfc],
                 [p1, c4, kfc, sfo],
                 [p1, c4, kfc, jfk],
-                [p1, c4, kfc, kfc],
-                [p2, c1, sfo, sfo],
                 [p2, c1, sfo, jfk],
                 [p2, c1, sfo, kfc],
                 [p2, c1, jfk, sfo],
-                [p2, c1, jfk, jfk],
                 [p2, c1, jfk, kfc],
                 [p2, c1, kfc, sfo],
                 [p2, c1, kfc, jfk],
-                [p2, c1, kfc, kfc],
-                [p2, c2, sfo, sfo],
                 [p2, c2, sfo, jfk],
                 [p2, c2, sfo, kfc],
                 [p2, c2, jfk, sfo],
-                [p2, c2, jfk, jfk],
                 [p2, c2, jfk, kfc],
                 [p2, c2, kfc, sfo],
                 [p2, c2, kfc, jfk],
-                [p2, c2, kfc, kfc],
-                [p2, c3, sfo, sfo],
                 [p2, c3, sfo, jfk],
                 [p2, c3, sfo, kfc],
                 [p2, c3, jfk, sfo],
-                [p2, c3, jfk, jfk],
                 [p2, c3, jfk, kfc],
                 [p2, c3, kfc, sfo],
                 [p2, c3, kfc, jfk],
-                [p2, c3, kfc, kfc],
-                [p2, c4, sfo, sfo],
                 [p2, c4, sfo, jfk],
                 [p2, c4, sfo, kfc],
                 [p2, c4, jfk, sfo],
-                [p2, c4, jfk, jfk],
                 [p2, c4, jfk, kfc],
                 [p2, c4, kfc, sfo],
-                [p2, c4, kfc, jfk],
-                [p2, c4, kfc, kfc]]
+                [p2, c4, kfc, jfk]]
     assert_equal expected, variables
   end
 
@@ -255,19 +223,13 @@ PDDL
     assert_equal :at, pred.name
 
     actions = params.propositionalize([p1, sfo, jfk])
-    assert_equal 4, actions.size
+    assert_equal 2, actions.size
 
     assert_equal fact(pred, [p1, sfo]), actions[0].precond
-    assert_equal fact(pred, [p1, sfo]), actions[0].effect
+    assert_equal fact(pred, [p1, jfk]), actions[0].effect
 
-    assert_equal fact(pred, [p1, sfo]), actions[1].precond
-    assert_equal fact(pred, [p1, jfk]), actions[1].effect
-
-    assert_equal fact(pred, [p1, jfk]), actions[2].precond
-    assert_equal fact(pred, [p1, sfo]), actions[2].effect
-
-    assert_equal fact(pred, [p1, jfk]), actions[3].precond
-    assert_equal fact(pred, [p1, jfk]), actions[3].effect
+    assert_equal fact(pred, [p1, jfk]), actions[1].precond
+    assert_equal fact(pred, [p1, sfo]), actions[1].effect
   end
 
   def test_propositionalize_should_eval_formulas_in_precondition
