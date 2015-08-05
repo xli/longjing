@@ -1,9 +1,9 @@
 require 'set'
-require 'longjing/ff/greedy_state'
 require 'longjing/ff/connectivity_graph'
 require 'longjing/ff/relaxed_graph_plan'
 require 'longjing/ff/ordering'
 require 'longjing/logging'
+require 'longjing/search/greedy'
 
 module Longjing
   module PDDL
@@ -115,45 +115,15 @@ module Longjing
       end
 
       def greedy_search(problem, h)
-        log { "Greedy search" }
-        initial = problem.initial
         goal_list = problem.goal.to_a
-        dist = if relaxed_solution = h.extract(goal_list, initial)
-                 distance(relaxed_solution)
-               else
-                 Float::INFINITY
-               end
-        logger.debug { "Initial cost:  #{dist}" }
-        if problem.goal?(initial)
-          return final_solution(initial)
-        end
-        frontier = SortedSet.new([GreedyState.new(initial, dist)])
-        known = {initial => true}
-        until frontier.empty? do
-          gs = frontier.first
-          frontier.delete(gs)
-          state = gs.state
-          log(:exploring, state, gs.dist)
-          problem.actions(state).each do |action|
-            new_state = problem.result(action, state)
-            log(:action, action, new_state)
-            if known.include?(new_state)
-              logger.debug { "Known state" }
-              next
-            end
-            if problem.goal?(new_state)
-              return final_solution(new_state)
-            end
-            state_dist = if relaxed_solution = h.extract(goal_list, new_state)
-                           distance(relaxed_solution)
-                         else
-                           Float::INFINITY
-                         end
-            known[new_state] = true
-            frontier << GreedyState.new(new_state, state_dist)
-          end
-        end
-        return {}
+        greedy = Longjing::Search::Greedy.new
+        greedy.search(problem, lambda do |state|
+                        if relaxed_solution = h.extract(goal_list, state)
+                          distance(relaxed_solution)
+                        else
+                          Float::INFINITY
+                        end
+                      end)
       end
 
       private
