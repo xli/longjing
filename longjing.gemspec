@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.email         = ["swing1979@gmail.com"]
 
   spec.summary       = %q{Longjing is classical planner.}
-  spec.description   = %q{Longjing is classical planner which resolves problems defined by a specific version of PDDL (Planning Domain Definition Language) described in book "Artificial Intelligence: a modern approach".}
+  spec.description   = %q{Longjing is classical planner for learning classical planning algorithms.}
   spec.homepage      = "https://github.com/xli/longjing"
 
   spec.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
