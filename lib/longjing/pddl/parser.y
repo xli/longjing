@@ -11,45 +11,41 @@ class Longjing::PDDL::Parser
   rule
 
   target
-  : OPEN_BRACE DEFINE domain_name requirements types predicates actions CLOSE_BRACE
-    { val[2].merge!({
-        requirements: val[3],
-        types: val[4],
-        predicates: val[5],
-        actions: val[6]
-      })}
-  | OPEN_BRACE DEFINE domain_name requirements predicates actions CLOSE_BRACE
-    { val[2].merge!({
-        requirements: val[3],
-        predicates: val[4],
-        actions: val[5]
-      })}
-  | OPEN_BRACE DEFINE domain_name types predicates actions CLOSE_BRACE
-    { val[2].merge!({
-        requirements: [:strips],
-        types: val[3],
-        predicates: val[4],
-        actions: val[5]
-      })}
-  | OPEN_BRACE DEFINE domain_name predicates actions CLOSE_BRACE
-    { val[2].merge!({
-        requirements: [:strips],
-        predicates: val[3],
-        actions: val[4]
-      })}
-  | OPEN_BRACE DEFINE domain_problem objects init goal CLOSE_BRACE
-    { val[2].merge({ objects: val[3], init: val[4], goal: val[5] })}
-  | OPEN_BRACE DEFINE domain_problem init goal CLOSE_BRACE
-    { val[2].merge({ objects: [], init: val[3], goal: val[4] })}
+  : OPEN_BRACE DEFINE domain_name domain_primaries CLOSE_BRACE         { val[2].merge!(val[3]) }
+  | OPEN_BRACE DEFINE domain_problem problem_primaries CLOSE_BRACE     { val[2].merge!(val[3]) }
   ;
+
+  domain_primaries
+  : domain_primary domain_primaries                    { val[0].merge(val[1]) }
+  | domain_primary                                     { val[0] }
+  ;
+
+  problem_primaries
+  : problem_primary problem_primaries                  { val[0].merge(val[1]) }
+  | problem_primary                                    { val[0] }
+  ;
+
+
+  domain_primary
+  : requirements                                       { { requirements: val[0] } }
+  | types                                              { { types: val[0] } }
+  | predicates                                         { { predicates: val[0] } }
+  | action                                             { (@actions ||= []) << val[0]; {actions: @actions} }
+  ;
+
+  problem_primary
+  : objects                                            { { objects: val[0] } }
+  | init                                               { { init: val[0] } }
+  | goal                                               { { goal: val[0] } }
+  ;
+
 
   domain_name
   : OPEN_BRACE DOMAIN name CLOSE_BRACE                 { domain(val[2]) }
   ;
 
   domain_problem
-  : OPEN_BRACE PROBLEM name CLOSE_BRACE OPEN_BRACE DOMAIN name CLOSE_BRACE
-    { problem(val[2], val[6]) }
+  : OPEN_BRACE PROBLEM name CLOSE_BRACE OPEN_BRACE DOMAIN name CLOSE_BRACE  { problem(val[2], val[6]) }
   ;
 
   requirements
@@ -76,11 +72,6 @@ class Longjing::PDDL::Parser
 
   goal
   : OPEN_BRACE GOAL literal CLOSE_BRACE    { val[2] }
-  ;
-
-  actions
-  : action actions           { [val[0]] + val[1] }
-  | action                   { [val[0]] }
   ;
 
   predicate_list
@@ -213,18 +204,16 @@ class Longjing::PDDL::Parser
 
   def domain(name)
     @predicates, @types = {}, {}
-    @domains[name] = { domain: name }
+    @domains[name] = { domain: name, predicates: [], types: [] }
   end
 
   def problem(name, domain_name)
     domain = @domains[domain_name]
     raise UnknownDomain unless domain
     @predicates = Hash[domain[:predicates].map{|pred| [pred.name, pred]}]
-    @types = if domain[:types]
-               Hash[domain[:types].map{|t| [t.name, t]}]
-             end
+    @types = Hash[domain[:types].map{|t| [t.name, t]}]
     @objects = {}
-    { problem: name }.merge(domain)
+    { problem: name, objects: [], init: [] }.merge(domain)
   end
 
   def requirements(reqs)

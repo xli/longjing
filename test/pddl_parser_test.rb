@@ -25,7 +25,7 @@ PDDL
 
   def test_parse_no_type_domain_blocksworld_4ops
     pddl = pddl(pddl_file('blocksworld-4ops'))
-    assert_equal 4, pddl.size
+    assert_equal 5, pddl.size
     assert_equal :blocksworld, pddl[:domain]
     assert_equal [:strips], pddl[:requirements]
     assert_equal "(clear ?x - object) (on-table ?x - object) (arm-empty) (holding ?x - object) (on ?x - object ?y - object)", pddl[:predicates].join(" ")
@@ -78,9 +78,9 @@ PDDL
 
   def test_parse_blocksworld_4ops_problem
     pddl = blocksworld_rand_4_problem
-    assert_equal 8, pddl.size
+    assert_equal 9, pddl.size
     assert_equal [:domain, :requirements, :predicates, :actions,
-                  :problem, :objects, :goal, :init].sort,
+                  :problem, :objects, :goal, :init, :types].sort,
                  pddl.keys.sort
 
     assert_equal :"BW-rand-4", pddl[:problem]
@@ -123,8 +123,7 @@ PDDL
 
   def test_parse_barman_problem
     pddl = pddl_problem(pddl_file('barman'), pddl_file("barman-p1-11-4-15"))
-    assert_equal 9, pddl.size
-
+    assert pddl.size >= 9
     objs = []
     objs << "shaker1 - shaker - container - object"
     objs << "left - hand - object"

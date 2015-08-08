@@ -6,7 +6,7 @@ module Longjing
     end
 
     def propositionalize(objects)
-      return [@action] if objects.empty?
+      return [@action] if objects.nil? || objects.empty?
       permutate(objects).map do |arguments|
         @action.substitute(arguments)
       end.compact
