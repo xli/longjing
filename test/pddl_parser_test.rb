@@ -89,6 +89,7 @@ PDDL
 
     init =
       "(fact arm-empty) (fact on b1 - object b2 - object) (fact on b2 - object b4 - object) (fact on-table b3 - object) (fact on-table b4 - object) (fact clear b1 - object) (fact clear b3 - object)"
+
     assert_equal init, pddl[:init].map(&:inspect).join(" ")
     goal =
       '(and (fact on b1 - object b2 - object) (fact on b3 - object b4 - object) (fact on b4 - object b1 - object))'
@@ -184,6 +185,37 @@ PDDL
     assert_equal ['card - object', 'colnum - object',
                   'cellnum - object', 'num - object', 'suit - object'], pddl[:types].map(&:to_s)
     assert_equal 10, pddl[:actions].size
+  end
+
+  def test_parse_constants
+    pddl = pddl(pddl_file('p01-airport1-domain'))
+    assert_equal 23, pddl[:constants].size
+    assert_equal :north, pddl[:constants][0].name
+  end
+
+  def test_constants
+    PDDL.parse(<<-PDDL)
+(define (domain plane)
+  (:requirements :strips :typing)
+  (:types plane airport)
+  (:constants p1 p2 - plane)
+  (:predicates (at ?p - plane ?a - airport))
+  (:action fly
+      :parameters (?p - plane ?from - airport ?to - airport)
+      :precondition (at ?p ?from)
+      :effect (and (not (at ?p ?from)) (at ?p ?to)))
+)
+PDDL
+    prob = PDDL.parse(<<-PDDL)
+(define (problem plane-a) (:domain plane)
+  (:objects sfo jfk - airport)
+  (:init (at p1 sfo)
+         (at p2 jfk))
+  (:goal (and (at p1 jfk)
+              (at p2 sfo))))
+PDDL
+    result = Longjing.plan(prob)
+    Longjing.validate!(prob, result)
   end
 
   def test_raise_error_on_unsupported_requirements

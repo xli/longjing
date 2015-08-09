@@ -78,19 +78,19 @@ module Longjing
     end
 
     class Formula < Literal
-      attr_reader :pred, :vars, :hash
-      def initialize(pred, vars)
+      attr_reader :pred, :obj_or_var_list, :hash
+      def initialize(pred, obj_or_var_list)
         @pred = pred
-        @vars = vars
-        @hash = [pred, vars].hash
+        @obj_or_var_list = obj_or_var_list
+        @hash = [pred, obj_or_var_list].hash
       end
 
       def substitute(variables)
-        Fact[@pred, @vars.map{|v| variables[v]}]
+        Fact[@pred, @obj_or_var_list.map{|v| v.is_a?(Var) ? variables[v] : v}]
       end
 
       def to_s
-        "(#{[@pred.name, *@vars].join(' ')})"
+        "(#{[@pred.name, *@obj_or_var_list].join(' ')})"
       end
 
       def inspect
@@ -148,7 +148,9 @@ module Longjing
       end
 
       def substitute(variables)
-        variables[@left] == variables[@right] ? EMPTY : nil
+        l = @left.is_a?(Var) ? variables[@left] : @left
+        r = @right.is_a?(Var) ? variables[@right] : @right
+        l == r ? EMPTY : nil
       end
 
       def to_s
@@ -157,12 +159,6 @@ module Longjing
 
       def inspect
         "(= #{@left.inspect} #{@right.inspect})"
-      end
-    end
-
-    class EqualFormula < Equal
-      def substitute(variables)
-        @left == @right ? EMPTY : nil
       end
     end
 

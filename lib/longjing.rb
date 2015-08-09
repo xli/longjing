@@ -33,7 +33,8 @@ module Longjing
     raise "No solution" if solution.nil?
     goal = prob[:goal]
     actions = Hash[prob[:actions].map{|o| [o.name, o]}]
-    objects = Hash[prob[:objects].map{|o| [o.name, o]}]
+    objects = Hash[(Array(prob[:constants]) +
+                    Array(prob[:objects])).map{|o| [o.name, o]}]
     state = prob[:init].to_set
 
     solution.each do |step|

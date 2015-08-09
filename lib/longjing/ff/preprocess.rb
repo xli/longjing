@@ -20,9 +20,10 @@ module Longjing
       end
 
       def propositionalize(problem)
+        objs = Array(problem[:constants]) + Array(problem[:objects])
         actions = problem[:actions].map do |action|
           params = Parameters.new(action)
-          params.propositionalize(problem[:objects])
+          params.propositionalize(objs)
         end.flatten
         Problem.new(actions, problem[:init], problem[:goal])
       end

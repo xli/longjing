@@ -43,6 +43,7 @@ module Longjing
         agenda.each do |g|
           goal << g
           unless state = hill_climbing(state, goal)
+            log { "Hill climbing dead end, switch to greedy search" }
             return greedy_search
           end
         end

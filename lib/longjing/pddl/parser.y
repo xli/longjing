@@ -1,7 +1,7 @@
 class Longjing::PDDL::Parser
   options no_result_var
 
-  token DEFINE DOMAIN REQUIREMENTS TYPES PREDICATES
+  token DEFINE DOMAIN REQUIREMENTS TYPES PREDICATES CONSTANTS
         ACTION PARAMETERS PRECONDITION EFFECT
         PROBLEM OBJECTS GOAL INIT
         NOT AND EQUAL
@@ -30,7 +30,8 @@ class Longjing::PDDL::Parser
   : requirements                                       { { requirements: val[0] } }
   | types                                              { { types: val[0] } }
   | predicates                                         { { predicates: val[0] } }
-  | action                                             { (@actions ||= []) << val[0]; {actions: @actions} }
+  | constants                                          { { constants: val[0] } }
+  | action                                             { (@actions ||= []) << val[0]; { actions: @actions } }
   ;
 
   problem_primary
@@ -54,6 +55,11 @@ class Longjing::PDDL::Parser
 
   types
   : OPEN_BRACE TYPES type_list CLOSE_BRACE             { val[2] }
+  ;
+
+  constants
+  : OPEN_BRACE CONSTANTS object_list CLOSE_BRACE       { val[2] }
+  | OPEN_BRACE CONSTANTS CLOSE_BRACE                   { [] }
   ;
 
   predicates
@@ -115,12 +121,20 @@ class Longjing::PDDL::Parser
   ;
 
   atom_literal
-  : OPEN_BRACE name object_list CLOSE_BRACE       { Fact[@predicates.fetch(val[1]), val[2]] }
-  | OPEN_BRACE name vars_list CLOSE_BRACE         { Formula.new(@predicates.fetch(val[1]), val[2]) }
-  | OPEN_BRACE EQUAL object_list CLOSE_BRACE      { Equal.new(*(val[2])) }
-  | OPEN_BRACE EQUAL vars_list CLOSE_BRACE        { EqualFormula.new(*(val[2])) }
+  : OPEN_BRACE name obj_or_var_list CLOSE_BRACE   {
+     val[2].any?{|v| v.is_a?(Var)} ?
+       Formula.new(@predicates.fetch(val[1]), val[2]) :
+       Fact[@predicates.fetch(val[1]), val[2]] }
   | OPEN_BRACE name CLOSE_BRACE                   { Fact[@predicates.fetch(val[1]), []] }
+  | OPEN_BRACE EQUAL obj_or_var_list CLOSE_BRACE  { Equal.new(*(val[2])) }
   | OPEN_BRACE NOT atom_literal CLOSE_BRACE       { Not[val[2]] }
+  ;
+
+  obj_or_var_list
+  : name obj_or_var_list                          { [object(val[0])] + val[1] }
+  | VAR obj_or_var_list                           { [@params ? @params.fetch(val[0]) : Var.new(val[0])] + val[1] }
+  | name                                          { [object(val[0])] }
+  | VAR                                           { [@params ? @params.fetch(val[0]) : Var.new(val[0])] }
   ;
 
   object_list
@@ -203,7 +217,7 @@ class Longjing::PDDL::Parser
                             :equality]
 
   def domain(name)
-    @predicates, @types = {}, {}
+    @predicates, @types, @objects = {}, {}, {}
     @domains[name] = { domain: name, predicates: [], types: [] }
   end
 
@@ -212,7 +226,7 @@ class Longjing::PDDL::Parser
     raise UnknownDomain unless domain
     @predicates = Hash[domain[:predicates].map{|pred| [pred.name, pred]}]
     @types = Hash[domain[:types].map{|t| [t.name, t]}]
-    @objects = {}
+    @objects = Hash[Array(domain[:constants]).map{|o| [o.name, o]}]
     { problem: name, objects: [], init: [] }.merge(domain)
   end
 
@@ -270,6 +284,8 @@ class Longjing::PDDL::Parser
         @tokens.push [:REQUIREMENTS, m]
       when m = scanner.scan(/\:types\b/i)
         @tokens.push [:TYPES, m]
+      when m = scanner.scan(/\:constants\b/i)
+        @tokens.push [:CONSTANTS, m]
       when m = scanner.scan(/\:predicates\b/i)
         @tokens.push [:PREDICATES, m]
       when m = scanner.scan(/\:action\b/i)
