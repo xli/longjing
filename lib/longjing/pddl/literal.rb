@@ -62,6 +62,7 @@ module Longjing
 
       def apply(set)
         set << self
+        set
       end
 
       def substitute(variables)
@@ -119,6 +120,7 @@ module Longjing
 
       def apply(set)
         set.delete(@literal)
+        set
       end
 
       def substitute(variables)
@@ -176,11 +178,10 @@ module Longjing
       end
 
       def apply(set)
-        ret = set.dup
         @literals.each do |lit|
-          lit.apply(ret)
+          lit.apply(set)
         end
-        ret
+        set
       end
 
       def substitute(variables)

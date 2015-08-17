@@ -6,6 +6,9 @@ require 'longjing/search'
 module Longjing
   extend Logging
 
+  class Fail < StandardError
+  end
+
   module_function
   def pddl(file)
     raise "File #{file.inspect} does not exist" unless File.exist?(file)
@@ -19,9 +22,14 @@ module Longjing
 
   def pddl_plan(domain_file, problem_file, search=:ff)
     prob = pddl_problem(domain_file, problem_file)
-    plan(prob, search).tap do |solution|
-      validate!(prob, solution)
-    end
+    solution = plan(prob, search)
+
+    prob = pddl_problem(domain_file, problem_file)
+    validate!(prob, solution)
+
+    solution
+  rescue Fail
+    exit(1)
   end
 
   def plan(problem, search=:ff)
@@ -30,7 +38,9 @@ module Longjing
   end
 
   def validate!(prob, solution)
-    raise "No solution" if solution.nil?
+    if solution.nil?
+      raise Fail, "No solution"
+    end
     goal = prob[:goal]
     actions = Hash[prob[:actions].map{|o| [o.name, o]}]
     objects = Hash[(Array(prob[:constants]) +
@@ -45,11 +55,19 @@ module Longjing
       if action.precond.applicable?(state)
         state = action.effect.apply(state)
       else
-        raise "Invalid solution, failed at step: #{step.inspect}"
+        log { "================================" }
+        log { "Invalid solution:" }
+        log { "Failed at step: #{step}" }
+        log { "action: #{action.name}" }
+        log { "  precond: #{action.precond}" }
+        log { "is not applicable to state: " }
+        log(:facts, state.to_a)
+        raise Fail, "Invalid solution"
       end
     end
     unless goal.applicable?(state)
-      raise "Invalid solution, end with #{state}"
+      log { "Invalid solution, end with #{state}" }
+      raise Fail, "Invalid solution"
     end
   end
 end

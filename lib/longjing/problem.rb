@@ -16,13 +16,19 @@ module Longjing
     end
 
     def actions(state)
-      @all_actions.select do |action|
-        action.precond.applicable?(state.raw)
+      @all_actions.select(&applicable(state))
+    end
+
+    def applicable(state)
+      raw = state.raw
+      lambda do |action|
+        action.precond.applicable?(raw)
       end
     end
 
     def result(action, state)
-      raw = action.effect.apply(state.raw)
+      raw = state.raw.dup
+      action.effect.apply(raw)
       State.new(raw, state.path + [action])
     end
   end

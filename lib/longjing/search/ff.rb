@@ -12,6 +12,10 @@ module Longjing
     end
   end
 
+  class State
+    attr_accessor :ff_helpful_actions
+  end
+
   module Search
     def self.ff
       FF
@@ -61,32 +65,35 @@ module Longjing
         logger.debug { "Initial cost: #{best}" }
         return unless best
         state.cost = best
-        helpful_actions = relaxed_solution[1]
+        state.ff_helpful_actions = relaxed_solution[1]
+        statistics.evaluated += 1
         goal_set = goal_list.to_set
         until best == 0 do
-          state, best, helpful_actions = breadth_first([state],
-                                                       best,
-                                                       helpful_actions,
-                                                       goal_set,
-                                                       goal_list)
+          state, best = breadth_first([state],
+                                      best,
+                                      goal_set,
+                                      goal_list)
           return unless state
-          logger.debug { "----\nState: #{state}\nCost: #{best}\nPath: #{state.path.map(&:signature).join("\n")}" }
         end
         state
       end
 
-      def breadth_first(frontier, best, helpful_actions,
-                        goal_set, goal_list)
+      def breadth_first(frontier, best, goal_set, goal_list)
         known = Hash[frontier.map{|f| [f, true]}]
         until frontier.empty? do
           state = frontier.shift
-          statistics.expanded += 1
 
           log(:exploring, state)
           log_progress(state)
 
-          actions = helpful_actions || @problem.actions(state)
-          helpful_actions = nil
+          if actions = state.ff_helpful_actions
+            actions.select!(&@problem.applicable(state))
+          end
+          if actions.nil? || actions.empty?
+            actions = @problem.actions(state)
+          end
+          statistics.expanded += 1
+
           actions.each do |action|
             new_state = @problem.result(action, state)
             statistics.generated += 1
@@ -100,9 +107,10 @@ module Longjing
             if solution = @h.extract(goal_list, new_state, added_goals)
               dist = distance(solution)
               new_state.cost = dist
+              new_state.ff_helpful_actions = solution[1]
               log(:heuristic, new_state, solution, dist, best)
               if dist < best
-                return [new_state, dist, solution[1]]
+                return [new_state, dist]
               else
                 known[new_state] = true
                 frontier << new_state

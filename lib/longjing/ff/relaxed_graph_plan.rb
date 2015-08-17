@@ -132,7 +132,7 @@ module Longjing
               end
             end
           end
-          [plan, helpful_actions.empty? ? nil : helpful_actions.keys]
+          [plan, helpful_actions.keys]
         end
       end
     end
