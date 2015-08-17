@@ -59,27 +59,23 @@ module Longjing
         log(:facts, goal_list)
         reset_best_heuristic
 
-        best = if relaxed_solution = @h.extract(goal_list, state)
-                 distance(relaxed_solution)
-               end
-        logger.debug { "Initial cost: #{best}" }
-        return unless best
-        state.cost = best
-        state.ff_helpful_actions = relaxed_solution[1]
+        relaxed_solution = @h.extract(goal_list, state)
         statistics.evaluated += 1
+        return if relaxed_solution.nil?
+        state.cost = distance(relaxed_solution)
+        state.ff_helpful_actions = relaxed_solution[1]
+        logger.debug { "Initial cost: #{state.cost}" }
         goal_set = goal_list.to_set
-        until best == 0 do
-          state, best = breadth_first([state],
-                                      best,
-                                      goal_set,
-                                      goal_list)
-          return unless state
+        until state.cost == 0 do
+          state = breadth_first([state], goal_set, goal_list)
+          return if state.nil?
         end
         state
       end
 
-      def breadth_first(frontier, best, goal_set, goal_list)
-        known = Hash[frontier.map{|f| [f, true]}]
+      def breadth_first(frontier, goal_set, goal_list)
+        known = {frontier[0] => true}
+        best = frontier[0].cost
         until frontier.empty? do
           state = frontier.shift
 
@@ -92,8 +88,6 @@ module Longjing
           if actions.nil? || actions.empty?
             actions = @problem.actions(state)
           end
-          statistics.expanded += 1
-
           actions.each do |action|
             new_state = @problem.result(action, state)
             statistics.generated += 1
@@ -103,26 +97,27 @@ module Longjing
               next
             end
 
-            added_goals = Hash[action.effect.to_a.select{|lit| goal_set.include?(lit)}.map{|k| [k, true]}]
-            if solution = @h.extract(goal_list, new_state, added_goals)
-              dist = distance(solution)
-              new_state.cost = dist
-              new_state.ff_helpful_actions = solution[1]
-              log(:heuristic, new_state, solution, dist, best)
-              if dist < best
-                return [new_state, dist]
+            relaxed_solution = @h.extract(goal_list,
+                                          new_state,
+                                          added_goals(action, goal_set))
+            statistics.evaluated += 1
+            if relaxed_solution.nil?
+              # ignore infinite heuristic state
+              logger.debug { "No relaxed solution" }
+            else
+              new_state.cost = distance(relaxed_solution)
+              new_state.ff_helpful_actions = relaxed_solution[1]
+              log(:heuristic, new_state, relaxed_solution, best)
+              if new_state.cost < best
+                return new_state
               else
                 known[new_state] = true
                 frontier << new_state
               end
-            else
-              # ignore infinite heuristic state
-              logger.debug { "No relaxed solution" }
             end
-            statistics.evaluated += 1
           end
+          statistics.expanded += 1
         end
-        return nil
       end
 
       def greedy_search
@@ -133,6 +128,15 @@ module Longjing
         greedy.search(@problem, heuristic)
       end
 
+      def added_goals(action, goal_set)
+        ret = {}
+        action.effect.to_a.each do |lit|
+          if goal_set.include?(lit)
+            ret[lit] = true
+          end
+        end
+        ret
+      end
 
       def distance(relaxed)
         return Float::INFINITY if relaxed.nil?

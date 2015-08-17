@@ -25,16 +25,16 @@ module Longjing
         logger.debug { "\nAction: #{action.signature}\n-----------------------" }
         logger.debug { "=>  #{result}" }
       when :heuristic
-        new_state, solution, dist, best = args
+        new_state, solution, best = args
         logger.debug {
           buf = ""
           solution[0].reverse.each_with_index do |a, i|
             buf << "  #{i}. [#{a.map(&:signature).join(", ")}]\n"
           end
-          "Relaxed plan (cost: #{dist}):\n#{buf}\n  helpful actions: #{solution[1] ? solution[1].map(&:signature).join(", ") : '[]'}"
+          "Relaxed plan (cost: #{new_state.cost}):\n#{buf}\n  helpful actions: #{solution[1] ? solution[1].map(&:signature).join(", ") : '[]'}"
         }
-        if dist < best
-          logger.debug { "Add to plan #{new_state.path.last.signature}, cost: #{dist}" }
+        if new_state.cost < best
+          logger.debug { "Add to plan #{new_state.path.last.signature}, cost: #{new_state.cost}" }
         else
           logger.debug { "Add to frontier" }
         end
