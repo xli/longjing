@@ -24,7 +24,7 @@ PDDL
   end
 
   def test_parse_no_type_domain_blocksworld_4ops
-    pddl = pddl(pddl_file('blocksworld-4ops'))
+    pddl = pddl(pddl_file('blocksworld-4ops/domain'))
     assert_equal 5, pddl.size
     assert_equal :blocksworld, pddl[:domain]
     assert_equal [:strips], pddl[:requirements]
@@ -99,7 +99,7 @@ PDDL
   end
 
   def test_parse_type_inhierencing_domain_barman
-    pddl = pddl(pddl_file('barman'))
+    pddl = pddl(pddl_file('barman/domain'))
     assert_equal 5, pddl.size
     types = []
     types << 'hand - object'
@@ -123,7 +123,8 @@ PDDL
   end
 
   def test_parse_barman_problem
-    pddl = pddl_problem(pddl_file('barman'), pddl_file("barman-p1-11-4-15"))
+    pddl = pddl_problem(pddl_file('barman/domain'),
+                        pddl_file("barman/barman-p1-11-4-15"))
     assert pddl.size >= 9
     objs = []
     objs << "shaker1 - shaker - container - object"
@@ -173,12 +174,12 @@ PDDL
   def test_should_raise_unknown_domain_error_when_parsing_a_problem_use_unknown_domain
     PDDL.domains.clear
     assert_raise UnknownDomain do
-      pddl(pddl_file("barman-p1-11-4-15"))
+      pddl(pddl_file("barman/barman-p1-11-4-15"))
     end
   end
 
   def test_parse_comments
-    pddl = pddl(pddl_file('freecell'))
+    pddl = pddl(pddl_file('freecell/domain'))
     assert pddl
     assert_equal :freecell, pddl[:domain]
     assert_equal [:strips, :typing], pddl[:requirements]
@@ -188,7 +189,7 @@ PDDL
   end
 
   def test_parse_constants
-    pddl = pddl(pddl_file('p01-airport1-domain'))
+    pddl = pddl(pddl_file('airport/domain'))
     assert_equal 23, pddl[:constants].size
     assert_equal :north, pddl[:constants][0].name
   end

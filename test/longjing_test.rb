@@ -20,7 +20,7 @@ class LongjingTest < Test::Unit::TestCase
   end
 
   def test_unresolved_problem
-    Longjing.pddl(pddl_file('blocksworld-4ops'))
+    Longjing.pddl(pddl_file('blocksworld-4ops/domain'))
     problem = Longjing::PDDL.parse(<<-PDDL)
 (define (problem bw-dead)
         (:domain blocksworld)
@@ -39,7 +39,7 @@ PDDL
   end
 
   def test_negative_goal
-    Longjing.pddl(pddl_file('blocksworld-4ops'))
+    Longjing.pddl(pddl_file('blocksworld-4ops/domain'))
     problem = Longjing::PDDL.parse(<<-PDDL)
 (define (problem bw-dead)
         (:domain blocksworld)

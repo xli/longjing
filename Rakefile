@@ -3,18 +3,15 @@ require 'rake/testtask'
 require 'longjing'
 
 def pddl_problems
-  Dir['test/domains/*.pddl'].each do |f|
+  Dir['test/pddls/**/domain.pddl'].map do |f|
     Longjing.pddl(f)
   end
-
-  Dir['test/problems/*.pddl'].map do |f|
-    prob = Longjing.pddl(f)
-    {name: prob[:problem], prob: prob}
-  end
-end
-
-def problems
-  pddl_problems
+  Dir['test/pddls/**/*.pddl'].map do |f|
+    if f =~ /domain.pddl/ || f =~ /barman/
+      next
+    end
+    Longjing.pddl(f)
+  end.compact
 end
 
 Rake::TestTask.new do |t|
@@ -29,7 +26,7 @@ task :profile do
   require 'ruby-prof'
   puts "Profile started"
   result = RubyProf.profile do
-    problems.each do |prob|
+    pddl_problems.each do |prob|
       Longjing.plan(prob[:prob])
     end
   end
@@ -48,12 +45,12 @@ task :benchmark do
   stdout = STDOUT
   $stdout = File.new('benchmark.log', 'w')
   $stdout.sync = true
-  label_len = problems.map{|p|p[:name].length}.max + 1
+  label_len = pddl_problems.map{|p|p[:problem].length}.max + 1
   Benchmark.benchmark(Benchmark::CAPTION, label_len, Benchmark::FORMAT, ">total:", ">avg:") do |x|
-    bms = problems.map do |prob|
-      x.report(prob[:name].to_s.ljust(20)) do
+    bms = pddl_problems.map do |prob|
+      x.report(prob[:problem].to_s.ljust(20)) do
         10.times do
-          Longjing.plan(prob[:prob])
+          Longjing.plan(prob)
         end
       end
     end

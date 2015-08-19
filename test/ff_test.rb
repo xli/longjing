@@ -109,7 +109,7 @@ class FFTest < Test::Unit::TestCase
   end
 
   def test_extract_when_there_is_no_solution
-    domain = pddl(pddl_file('blocksworld-4ops'))
+    domain = pddl(pddl_file('blocksworld-4ops/domain'))
     bwp = PDDL.parse(<<-PDDL)
 (define (problem bw-4)
         (:domain blocksworld)
@@ -129,7 +129,7 @@ PDDL
   end
 
   def test_relaxed_plan_by_blocksworld_4op_problem
-    pddl(pddl_file('blocksworld-4ops'))
+    pddl(pddl_file('blocksworld-4ops/domain'))
     {
       "(on b1 b2) (on b2 b4) (on-table b4) (clear b1) (holding b3)" => [
         ["putdown(b3)"],
@@ -197,7 +197,7 @@ PDDL
   end
 
   def test_extracting_helpful_actions
-    pddl(pddl_file('blocksworld-4ops'))
+    pddl(pddl_file('blocksworld-4ops/domain'))
     prob = problem(PDDL.parse(<<-PDDL))
 (define (problem bw-rand-4)
         (:domain blocksworld)
@@ -217,7 +217,7 @@ PDDL
   end
 
   def test_extracting_helpful_actions2
-    pddl(pddl_file('blocksworld-4ops'))
+    pddl(pddl_file('blocksworld-4ops/domain'))
     prob = problem(PDDL.parse(<<-PDDL))
 (define (problem bw-rand-4)
         (:domain blocksworld)
@@ -243,7 +243,7 @@ PDDL
   end
 
   def test_added_goal_deletion
-    pddl(pddl_file('blocksworld-4ops'))
+    pddl(pddl_file('blocksworld-4ops/domain'))
     prob = problem(PDDL.parse(<<-PDDL))
 (define (problem bw-rand-4)
         (:domain blocksworld)
@@ -269,7 +269,7 @@ PDDL
   end
 
   def test_added_goal_deletion2
-    pddl(pddl_file('blocksworld-4ops'))
+    pddl(pddl_file('blocksworld-4ops/domain'))
     prob = problem(PDDL.parse(<<-PDDL))
 (define (problem bw-rand-4)
         (:domain blocksworld)
@@ -317,7 +317,7 @@ PDDL
   end
 
   def test_ordering
-    domain = pddl(pddl_file('blocksworld-4ops'))
+    domain = pddl(pddl_file('blocksworld-4ops/domain'))
     pddl_problem = PDDL.parse(<<-PDDL)
 (define (problem bw-rand-4)
         (:domain blocksworld)

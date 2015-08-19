@@ -9,7 +9,7 @@
 
 
 
-(define (problem PROBLEM_X)
+(define (problem p01-airport1-p1)
 
 (:domain airport_fixed_structure)
 

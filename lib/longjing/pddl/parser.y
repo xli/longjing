@@ -223,7 +223,7 @@ class Longjing::PDDL::Parser
 
   def problem(name, domain_name)
     domain = @domains[domain_name]
-    raise UnknownDomain unless domain
+    raise UnknownDomain, domain_name unless domain
     @predicates = Hash[domain[:predicates].map{|pred| [pred.name, pred]}]
     @types = Hash[domain[:types].map{|t| [t.name, t]}]
     @objects = Hash[Array(domain[:constants]).map{|o| [o.name, o]}]
