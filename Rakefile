@@ -22,21 +22,6 @@ end
 
 task :default => [:test, :benchmark]
 
-task :profile do
-  require 'ruby-prof'
-  puts "Profile started"
-  result = RubyProf.profile do
-    pddl_problems.each do |prob|
-      Longjing.plan(prob[:prob])
-    end
-  end
-  puts "output: profile.html"
-  printer = RubyProf::CallStackPrinter.new(result)
-  File.open("profile.html", 'w') do |f|
-    printer.print(f, {})
-  end
-end
-
 task :b => :benchmark
 
 task :benchmark do
