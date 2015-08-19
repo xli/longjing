@@ -24,7 +24,15 @@ prof = if input.include?('-p')
          RubyProf.start
        end
 
-Longjing.pddl_plan(*input)
+case input.size
+when 2
+  Longjing.pddl_plan(*input)
+when 1
+  domain_file = File.join(File.dirname(input[0]), 'domain.pddl')
+  Longjing.pddl_plan(domain_file, input[0])
+else
+  raise "Must provide problem pddl file"
+end
 
 if prof
   result = RubyProf.stop
