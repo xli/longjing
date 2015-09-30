@@ -310,7 +310,7 @@ class Longjing::PDDL::Parser
         @tokens.push [:SYMBOL, m[1..-1].to_sym]
       when m = scanner.scan(/\?[a-z][\w\-]*\b/i)
         @tokens.push [:VAR, m.to_sym]
-      when m = scanner.scan(/[a-z][\w\-]*\b/i)
+      when m = scanner.scan(/[a-z\d][\w\-]*\b/i)
         @tokens.push [:ID, m.to_sym]
       else
         raise "unexpected characters: #{scanner.peek(5).inspect}"

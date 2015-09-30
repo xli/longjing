@@ -1,12 +1,11 @@
 (define (domain marsrover-strips)
   (:requirements :strips :typing)
-  (:types direction number - object
-          x-axis y-axis - number)
+  (:types direction number - object)
   (:constants north east south west - direction)
   (:predicates (next ?n1 ?n2 - number)
                (face ?d - direction)
-               (at ?x - x-axis ?y - y-axis)
-               (blocked ?x - x-axis ?y - y-axis)
+               (at ?x - number ?y - number)
+               (blocked ?x - number ?y - number)
                (left ?d1 ?d2 - direction)
                (right ?d1 ?d2 - direction))
 
@@ -24,7 +23,7 @@
                    (face ?to)))
 
   (:action move-north
-           :parameters (?x - x-axis ?y ?to_y - y-axis)
+           :parameters (?x - number ?y ?to_y - number)
            :precondition (and (face north)
                               (at ?x ?y)
                               (not (blocked ?x ?to_y))
@@ -32,7 +31,7 @@
            :effect (and (at ?x ?to_y) (not (at ?x ?y))))
 
   (:action move-east
-           :parameters (?x ?to_x - x-axis ?y - y-axis)
+           :parameters (?x ?to_x - number ?y - number)
            :precondition (and (face east)
                               (at ?x ?y)
                               (not (blocked ?to_x ?y))
@@ -40,7 +39,7 @@
            :effect (and (at ?to_x ?y) (not (at ?x ?y))))
 
   (:action move-south
-           :parameters (?x - x-axis ?y ?to_y - y-axis)
+           :parameters (?x - number ?y ?to_y - number)
            :precondition (and (face south)
                               (at ?x ?y)
                               (not (blocked ?x ?to_y))
@@ -48,7 +47,7 @@
            :effect (and (at ?x ?to_y) (not (at ?x ?y))))
 
   (:action move-west
-           :parameters (?x ?to_x - x-axis ?y - y-axis)
+           :parameters (?x ?to_x - number ?y - number)
            :precondition (and (face west)
                               (at ?x ?y)
                               (not (blocked ?to_x ?y))

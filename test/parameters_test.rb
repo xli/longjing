@@ -10,7 +10,7 @@ class ParametersTest < Test::Unit::TestCase
                (in ?c ?p))
   (:action fly
       :parameters (?p ?to)
-      :precondition ()
+      :precondition (not (= ?p ?to))
       :effect (at ?p ?to)))
 PDDL
     problem = PDDL.parse(<<-PDDL)
@@ -24,20 +24,24 @@ PDDL
     params = Parameters.new(fly)
     p1, p2, sfo, jfk = problem[:objects]
     variables = params.permutate(problem[:objects])
-    assert_equal 4*3, variables.size
+    assert_equal 4*4, variables.size
     expected = [
+      [p1, p1],
       [p1,  p2],
       [p1,  sfo],
       [p1,  jfk],
       [p2,  p1],
+      [p2, p2],
       [p2,  sfo],
       [p2,  jfk],
       [sfo, p1],
       [sfo, p2],
+      [sfo, sfo],
       [sfo, jfk],
       [jfk, p1],
       [jfk, p2],
-      [jfk, sfo]
+      [jfk, sfo],
+      [jfk, jfk]
     ]
     assert_equal expected, variables
   end
@@ -85,12 +89,16 @@ PDDL
     p1, p2, sfo, jfk = problem[:objects]
     variables = params.permutate(problem[:objects])
 
-    assert_equal 2*2, variables.size
+    assert_equal 2*2*2, variables.size
     expected = [
+      [p1, sfo, sfo],
       [p1, sfo, jfk],
       [p1, jfk, sfo],
+      [p1, jfk, jfk],
+      [p2, sfo, sfo],
       [p2, sfo, jfk],
-      [p2, jfk, sfo]
+      [p2, jfk, sfo],
+      [p2, jfk, jfk]
     ]
 
     assert_equal expected, variables
@@ -119,56 +127,7 @@ PDDL
     p1, p2, sfo, jfk, kfc, c1, c2, c3, c4 = problem[:objects]
     variables = params.permutate(problem[:objects])
 
-    assert_equal 48, variables.size
-    expected = [[p1, c1, sfo, jfk],
-                [p1, c1, sfo, kfc],
-                [p1, c1, jfk, sfo],
-                [p1, c1, jfk, kfc],
-                [p1, c1, kfc, sfo],
-                [p1, c1, kfc, jfk],
-                [p1, c2, sfo, jfk],
-                [p1, c2, sfo, kfc],
-                [p1, c2, jfk, sfo],
-                [p1, c2, jfk, kfc],
-                [p1, c2, kfc, sfo],
-                [p1, c2, kfc, jfk],
-                [p1, c3, sfo, jfk],
-                [p1, c3, sfo, kfc],
-                [p1, c3, jfk, sfo],
-                [p1, c3, jfk, kfc],
-                [p1, c3, kfc, sfo],
-                [p1, c3, kfc, jfk],
-                [p1, c4, sfo, jfk],
-                [p1, c4, sfo, kfc],
-                [p1, c4, jfk, sfo],
-                [p1, c4, jfk, kfc],
-                [p1, c4, kfc, sfo],
-                [p1, c4, kfc, jfk],
-                [p2, c1, sfo, jfk],
-                [p2, c1, sfo, kfc],
-                [p2, c1, jfk, sfo],
-                [p2, c1, jfk, kfc],
-                [p2, c1, kfc, sfo],
-                [p2, c1, kfc, jfk],
-                [p2, c2, sfo, jfk],
-                [p2, c2, sfo, kfc],
-                [p2, c2, jfk, sfo],
-                [p2, c2, jfk, kfc],
-                [p2, c2, kfc, sfo],
-                [p2, c2, kfc, jfk],
-                [p2, c3, sfo, jfk],
-                [p2, c3, sfo, kfc],
-                [p2, c3, jfk, sfo],
-                [p2, c3, jfk, kfc],
-                [p2, c3, kfc, sfo],
-                [p2, c3, kfc, jfk],
-                [p2, c4, sfo, jfk],
-                [p2, c4, sfo, kfc],
-                [p2, c4, jfk, sfo],
-                [p2, c4, jfk, kfc],
-                [p2, c4, kfc, sfo],
-                [p2, c4, kfc, jfk]]
-    assert_equal expected, variables
+    assert_equal 2*3*3*4, variables.size
   end
 
   def test_permutate_arguments_less_than_params
@@ -206,7 +165,7 @@ PDDL
                (in ?c - cargo ?p - plane))
   (:action fly
       :parameters (?p - plane ?from - airport ?to - airport)
-      :precondition (at ?p ?from)
+      :precondition (and (at ?p ?from) (not (= ?from ?to)))
       :effect (at ?p ?to)))
 PDDL
     problem = PDDL.parse(<<-PDDL)
@@ -274,7 +233,7 @@ PDDL
                (in ?c - cargo ?p - plane))
   (:action fly
       :parameters (?p - plane ?from - airport ?to - airport)
-      :precondition (at ?p ?from)
+      :precondition (and (at ?p ?from) (not (= ?from ?to)))
       :effect (and (not (at ?p ?from)) (at ?p ?to))))
 PDDL
     problem = PDDL.parse(<<-PDDL)

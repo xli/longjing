@@ -108,26 +108,6 @@ class FFTest < Test::Unit::TestCase
     assert_equal expected, signature(plan)
   end
 
-  def test_extract_when_there_is_no_solution
-    domain = pddl(pddl_file('blocksworld-4ops/domain'))
-    bwp = PDDL.parse(<<-PDDL)
-(define (problem bw-4)
-        (:domain blocksworld)
-        (:objects b1 b2 b3)
-        (:init (arm-empty)
-               (on-table b1)
-               (on-table b2)
-               (on-table b3)
-               (clear b1)
-               (clear b2)
-               (clear b3))
-        (:goal (on b1 b1)))
-PDDL
-    prob = problem(bwp)
-    graph = relaxed_graph_plan(prob)
-    assert_nil graph.extract(prob.goal.to_a, prob.initial)
-  end
-
   def test_relaxed_plan_by_blocksworld_4op_problem
     pddl(pddl_file('blocksworld-4ops/domain'))
     {

@@ -24,9 +24,7 @@ module Longjing
         "type arguments: #{type_args.map {|v| v.size}.join(', ')}"
       }
 
-      type_args[0].product(*type_args[1..-1]).reject do |array|
-        array.uniq.size < @params.size
-      end
+      type_args[0].product(*type_args[1..-1])
     end
   end
 end
